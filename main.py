@@ -15,7 +15,7 @@ colorama.init()
 def generate_image(v, x_test, y_test, predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[v].reshape(28, 28), cmap='plasma')
+    ax.imshow(x_test[v].reshape(28, 28), cmap='gray')
     ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
     actual = np.where(y_test[v] == 1)
@@ -53,7 +53,7 @@ def find_occurences(prediction, wanted):
 def external_image(img, file, predict):
     fig, ax = plt.subplots(1)
     
-    ax.imshow(img.reshape(28, 28), cmap='plasma')
+    ax.imshow(img.reshape(28, 28), cmap='gray')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
     ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(predict[0])), bbox={'facecolor': 'white', 'pad': 10})
 
@@ -62,15 +62,18 @@ def external_image(img, file, predict):
 
     plt.show()
 
-def external_data(file, input_dir):
-    base_path = str(input_dir + '\\' + file)
-    processed_path = str(os.getcwd() + '\processed_input\\' + file)
-
+def process_image(base_path, processed_path):
     base_img = cv2.imread(base_path)
     gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
     (thresh, black_white_img) = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
     inverted_img = cv2.bitwise_not(black_white_img)
     cv2.imwrite(processed_path, inverted_img)
+
+def external_data(file, input_dir):
+    base_path = str(input_dir + '\\' + file)
+    processed_path = str(os.getcwd() + '\processed_input\\' + file)
+
+    process_image(base_path, processed_path)
 
     img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
     img = tf.keras.preprocessing.image.img_to_array(img)
@@ -136,6 +139,7 @@ def predict(model, x_test, y_test):
         for file in curr_dir:
             test_img, img = external_data(file, input_dir)
             predict = model.predict(test_img)
+            print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(predict[0])) + '\n')
             external_image(img, file, predict)
     elif external_mnist in ['M', 'm']:
         incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
