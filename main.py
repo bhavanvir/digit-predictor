@@ -109,7 +109,7 @@ def new_model(x_train, y_train):
     print()
     model.summary()
 
-    model.fit(x_train, y_train, epochs=150)
+    model.fit(x_train, y_train, epochs=500)
     model.save('mnist_model.h5')
 
     return model
