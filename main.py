@@ -106,7 +106,7 @@ def create_model():
 def new_model(x_train, y_train):
     model = create_model()
 
-    print()
+    print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
     model.fit(x_train, y_train, epochs=500)
@@ -117,11 +117,11 @@ def new_model(x_train, y_train):
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
 
-    print()
+    print(colored('\nSuccess: loading \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
     model.summary()
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
-    print(colored('\nSuccess: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}'.format(loss), color='green', attrs=['bold']))
+    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}'.format(loss), color='green', attrs=['bold']))
 
     return model
 
