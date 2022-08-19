@@ -4,9 +4,13 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import os
 import random
+import colorama
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
+from termcolor import colored
+
+colorama.init()
 
 def generate_image(v, x_test, y_test, predict, occurences):
     fig, ax = plt.subplots(1)
@@ -102,6 +106,7 @@ def create_model():
 def new_model(x_train, y_train):
     model = create_model()
 
+    print()
     model.summary()
 
     model.fit(x_train, y_train, epochs=150)
@@ -112,17 +117,17 @@ def new_model(x_train, y_train):
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
 
+    print()
     model.summary()
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
-    print("Restored model, accuracy: {:5.2f}%".format(100 * acc))
-    print("Restored model, loss: {:.2f}".format(loss))
+    print(colored('\nSuccess: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}'.format(loss), color='green', attrs=['bold']))
 
     return model
 
 def predict(model, x_test, y_test):
     print("\nExternal data must be placed in the 'input' folder.")
-    external_mnist = input("Would you like to use your own external data or the MNIST data? (E/M): ")
+    external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
         print()
         input_dir = str(os.getcwd() + '\input')
@@ -133,13 +138,13 @@ def predict(model, x_test, y_test):
             predict = model.predict(test_img)
             external_image(img, file, predict)
     elif external_mnist in ['M', 'm']:
-        incorrect_correct = input("Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
+        incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
 
-        number_range = input("Enter the number of the image you would like to see (0-9): ")
+        number_range = input("  ○ Enter the number of the image you would like to see (0-9): ")
         try:
             assert int(number_range) in range(10)
         except AssertionError:
-            print("Error: invalid input, exiting...")
+            print(colored('Error: ' + '\'' + str(number_range) + '\'' + ' is not within range (0-9), exiting...', color='red', attrs=['bold']))
             exit(1)
 
         predict = model.predict(x_test)
@@ -153,7 +158,7 @@ def predict(model, x_test, y_test):
             v = random_predict(correct_occur)
             generate_image(v, x_test, y_test, predict, correct_occur)
     else:
-        print("Error: invalid input, exiting...")
+        print(colored('Error: ' + '\'' + str(external_mnist) + '\'' + ' is not in the correct format (E/M), exiting...', color='red', attrs=['bold']))
         exit(1)
 
 def main():
@@ -168,7 +173,7 @@ def main():
     try:
         predict(model, x_test, y_test)
     except UnboundLocalError:
-        print('Error: model must be trained before use, exiting...')
+        print(colored("Error: model must be trained before use, exiting..."), color='red', attrs=['bold'])
         
 if __name__ == "__main__":
     main()
