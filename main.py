@@ -1,20 +1,18 @@
+import cv2
 import numpy as np 
-import pandas as pd 
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import os
 import random
-import PIL.ImageOps
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
-from PIL import Image 
 
-def incorrect_image(v, x_test, y_test, predict, wrong_predict):
+def generate_image(v, x_test, y_test, predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[v].reshape(28, 28), cmap='BuPu')
-    ax.set_title('Wrongly Predicted Image: ' + str(wrong_predict.index(v)) + '/' + str(len(wrong_predict)))
+    ax.imshow(x_test[v].reshape(28, 28), cmap='plasma')
+    ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
     actual = np.where(y_test[v] == 1)
     legend = 'Predicted label: ' + str(np.argmax(predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
@@ -25,11 +23,34 @@ def incorrect_image(v, x_test, y_test, predict, wrong_predict):
 
     plt.show()
 
+def find_all(x_test, y_test, predict):
+    incorrect_predict = {}
+    correct_predict = {}
+    
+    for i in range(len(x_test)):
+        index = np.where(y_test[i] == 1)
+        if index[0][0] != np.argmax(predict[i]):
+            incorrect_predict.update({i: np.argmax(predict[i])})
+        else:
+            correct_predict.update({i: np.argmax(predict[i])})
+    
+    return incorrect_predict, correct_predict
+
+def random_predict(predict):
+    v = random.choice(predict)
+
+    return v
+
+def find_occurences(prediction, wanted):
+    occurences = [k for k, v in prediction.items() if v == wanted]
+    
+    return occurences
+
 def external_image(img, file, predict):
     fig, ax = plt.subplots(1)
     
-    ax.imshow(img.reshape(28, 28), cmap='BuPu')
-    ax.set_title('Predicted File: ' + '\'' + str(file) + '\'')
+    ax.imshow(img.reshape(28, 28), cmap='plasma')
+    ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
     ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(predict[0])), bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
@@ -38,14 +59,16 @@ def external_image(img, file, predict):
     plt.show()
 
 def external_data(file, input_dir):
-    path = str(input_dir + '\\' + file)
+    base_path = str(input_dir + '\\' + file)
+    processed_path = str(os.getcwd() + '\processed_input\\' + file)
 
-    base_img = Image.open(path)
-    black_white = base_img.convert("L")
-    invert = PIL.ImageOps.invert(black_white)
-    invert.save(input_dir + '\\' + file)
+    base_img = cv2.imread(base_path)
+    gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
+    (thresh, black_white_img) = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
+    inverted_img = cv2.bitwise_not(black_white_img)
+    cv2.imwrite(processed_path, inverted_img)
 
-    img = tf.keras.preprocessing.image.load_img(path=path, color_mode='grayscale', target_size=(28, 28, 1))
+    img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
     img = tf.keras.preprocessing.image.img_to_array(img)
     test_img = img.reshape((1, 784))
 
@@ -61,24 +84,9 @@ def mnist_data():
 
     return x_train, y_train, x_test, y_test
 
-def find_all_incorrect(x_test, y_test, predict):
-    wrong_predict = []
-    
-    for i in range(len(x_test)):
-        index = np.where(y_test[i] == 1)
-        if index[0][0] != np.argmax(predict[i]):
-            wrong_predict.append(i)
-    
-    return wrong_predict
-
-def random_incorrect(wrong_predict):
-    v = random.choice(wrong_predict)
-
-    return v
-
 def create_model():
     model = keras.Sequential([
-        keras.layers.Dense(512, activation='relu', input_shape=(784,)),
+        keras.layers.Dense(784, activation='relu', input_shape=(784,)),
         keras.layers.Dropout(0.2),
         keras.layers.Dense(10, activation='softmax')
     ])
@@ -96,7 +104,7 @@ def new_model(x_train, y_train):
 
     model.summary()
 
-    model.fit(x_train, y_train, epochs=1)
+    model.fit(x_train, y_train, epochs=150)
     model.save('mnist_model.h5')
 
     return model
@@ -114,8 +122,8 @@ def load_model(x_test, y_test):
 
 def predict(model, x_test, y_test):
     print("\nExternal data must be placed in the 'input' folder.")
-    query = input("Would you like to use your own external data or the MNIST data? (E/M): ")
-    if query in ['E', 'e']:
+    external_mnist = input("Would you like to use your own external data or the MNIST data? (E/M): ")
+    if external_mnist in ['E', 'e']:
         print()
         input_dir = str(os.getcwd() + '\input')
         curr_dir = os.listdir(input_dir)
@@ -124,11 +132,26 @@ def predict(model, x_test, y_test):
             test_img, img = external_data(file, input_dir)
             predict = model.predict(test_img)
             external_image(img, file, predict)
-    elif query in ['M', 'm']:
+    elif external_mnist in ['M', 'm']:
+        incorrect_correct = input("Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
+
+        number_range = input("Enter the number of the image you would like to see (0-9): ")
+        try:
+            assert int(number_range) in range(10)
+        except AssertionError:
+            print("Error: invalid input, exiting...")
+            exit(1)
+
         predict = model.predict(x_test)
-        wrong_predict = find_all_incorrect(x_test, y_test, predict)
-        v = random_incorrect(wrong_predict)
-        incorrect_image(v, x_test, y_test, predict, wrong_predict)
+        incorrect_predict, correct_predict = find_all(x_test, y_test, predict)
+        if incorrect_correct in ['I', 'i']:
+            incorrect_occur = find_occurences(incorrect_predict, int(number_range))
+            v = random_predict(incorrect_occur)
+            generate_image(v, x_test, y_test, predict, incorrect_occur)
+        elif incorrect_correct in ['C', 'c']:
+            correct_occur = find_occurences(correct_predict, int(number_range))
+            v = random_predict(correct_occur)
+            generate_image(v, x_test, y_test, predict, correct_occur)
     else:
         print("Error: invalid input, exiting...")
         exit(1)
@@ -147,6 +170,5 @@ def main():
     except UnboundLocalError:
         print('Error: model must be trained before use, exiting...')
         
-    
 if __name__ == "__main__":
     main()
