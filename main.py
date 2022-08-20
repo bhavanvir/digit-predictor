@@ -65,7 +65,7 @@ def external_image(img, file, predict):
 def process_image(base_path, processed_path):
     base_img = cv2.imread(base_path)
     gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
-    (thresh, black_white_img) = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
+    (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     inverted_img = cv2.bitwise_not(black_white_img)
     cv2.imwrite(processed_path, inverted_img)
 
