@@ -132,15 +132,30 @@ def predict(model, x_test, y_test):
     print("\nExternal data must be placed in the 'input' folder.")
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
-        print()
         input_dir = str(os.getcwd() + '\input')
         curr_dir = os.listdir(input_dir)
+
+        if len(curr_dir) > 1:
+            view_img = input("● Would you like to view the processed input images? (Y/N): ")
+        else:
+            view_img = input("● Would you like to view the processed input image? (Y/N): ")
+
+        if view_img in ['Y', 'y']:
+            view_flag = True
+        elif view_img in ['N', 'n']:
+            view_flag = False
+        else:
+            print(colored('Error: ' + '\'' + str(view_img) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+            exit(1)
       
         for file in curr_dir:
+            print()
             test_img, img = external_data(file, input_dir)
             predict = model.predict(test_img)
-            print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(predict[0])) + '\n')
-            external_image(img, file, predict)
+            if view_flag:
+                external_image(img, file, predict)
+            elif not view_flag:
+                print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(predict[0])))
     elif external_mnist in ['M', 'm']:
         incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
 
@@ -177,7 +192,7 @@ def main():
     try:
         predict(model, x_test, y_test)
     except UnboundLocalError:
-        print(colored("Error: model must be trained before use, exiting..."), color='red', attrs=['bold'])
+        print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
         
 if __name__ == "__main__":
     main()
