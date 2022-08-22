@@ -28,6 +28,35 @@ def generate_image(v, x_test, y_test, predict, occurences):
 
     plt.show()
 
+def generate_external_image(img, file, predict):
+    fig, ax = plt.subplots(1)
+    
+    ax.imshow(img.reshape(28, 28), cmap='gray')
+    ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
+    ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(predict[0])), bbox={'facecolor': 'white', 'pad': 10})
+
+    mng = plt.get_current_fig_manager()
+    mng.window.state('zoomed')
+
+    plt.show()
+
+def generate_random_image(x_test, y_test, predict, prediction, number_range):
+    occurence = find_occurences(prediction, int(number_range))
+    v = random_predict(occurence)
+    generate_image(v, x_test, y_test, predict, occurence)
+
+def process_image(base_path, processed_path):
+    base_img = cv2.imread(base_path)
+
+    gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
+    (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    inverted_img = cv2.bitwise_not(black_white_img)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    dilation = cv2.dilate(inverted_img, kernel, iterations=5)
+
+    cv2.imwrite(processed_path, dilation)
+
 def find_all(x_test, y_test, predict):
     incorrect_predict = {}
     correct_predict = {}
@@ -53,35 +82,10 @@ def test_harness(predict, file):
     else:
         return False
 
-
 def find_occurences(prediction, wanted):
     occurences = [k for k, v in prediction.items() if v == wanted]
     
     return occurences
-
-def external_image(img, file, predict):
-    fig, ax = plt.subplots(1)
-    
-    ax.imshow(img.reshape(28, 28), cmap='gray')
-    ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
-    ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(predict[0])), bbox={'facecolor': 'white', 'pad': 10})
-
-    mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
-
-    plt.show()
-
-def process_image(base_path, processed_path):
-    base_img = cv2.imread(base_path)
-
-    gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
-    (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    inverted_img = cv2.bitwise_not(black_white_img)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    dilation = cv2.dilate(inverted_img, kernel, iterations=5)
-
-    cv2.imwrite(processed_path, dilation)
 
 def external_data(file, input_dir):
     base_path = str(input_dir + '\\' + file)
@@ -143,65 +147,71 @@ def load_model(x_test, y_test):
 
     return model
 
-def predict(model, x_test, y_test):
-    print("\nExternal data must be placed in the 'input' folder.")
-    print("\nFor testing purposes, have the input file include the number wanting to be predicted.")
+def external_data_query(model):
+    input_dir = str(os.getcwd() + '\input')
+    curr_dir = os.listdir(input_dir)
+
+    view_img = input("● Would you like to view the processed input image? (Y/N): ")
+    if view_img in ['Y', 'y']:
+        view_flag = True
+    elif view_img in ['N', 'n']:
+        view_flag = False
+    else:
+        print(colored('Error: ' + '\'' + str(view_img) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+        exit(1)
+
+    sum = 0
+    for file in curr_dir:
+        print()
+        test_img, img = external_data(file, input_dir)
+        y_predict = model.predict(test_img)
+        
+        try:
+            if test_harness(y_predict, file):
+                sum += 1
+        except AttributeError:
+            print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label (0-9), exiting...', color='red', attrs=['bold']))
+            exit(1)
+
+        if view_flag:
+            generate_external_image(img, file, y_predict)
+        elif not view_flag:
+            print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(y_predict[0])))
+    print('\nPercentage correct: ' + str(sum / len(curr_dir) * 100) + '%')
+
+def mnist_data_query(model, x_test, y_test):
+    incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
+    try:
+        assert incorrect_correct in ['I', 'i', 'C', 'c']
+    except AssertionError:
+        print(colored('Error: ' + '\'' + str(incorrect_correct) + '\'' + ' is not in the correct format (I/C), exiting...', color='red', attrs=['bold']))
+        exit(1)
+
+    number_range = input("  ○ Enter a number of the image you would like to see (0-9): ")
+    print()
+    try:
+        assert int(number_range) in range(10)
+    except AssertionError:
+        print(colored('Error: ' + '\'' + str(number_range) + '\'' + ' is not within range (0-9), exiting...', color='red', attrs=['bold']))
+        exit(1)
+
+    y_predict = model.predict(x_test)
+    incorrect_predict, correct_predict = find_all(x_test, y_test, y_predict)
+    if incorrect_correct in ['I', 'i']:
+        generate_random_image(x_test, y_test, y_predict, incorrect_predict, number_range)
+    elif incorrect_correct in ['C', 'c']:
+        generate_random_image(x_test, y_test, y_predict, correct_predict, number_range)
+
+def prediction_query(model, x_test, y_test):
+    print(colored('\n● Note:', color='yellow', attrs=['bold']))
+    print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow', attrs=['bold']))
+    print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow', attrs=['bold']))
+
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
-        input_dir = str(os.getcwd() + '\input')
-        curr_dir = os.listdir(input_dir)
-
-        if len(curr_dir) > 1:
-            view_img = input("● Would you like to view the processed input images? (Y/N): ")
-        else:
-            view_img = input("● Would you like to view the processed input image? (Y/N): ")
-
-        if view_img in ['Y', 'y']:
-            view_flag = True
-        elif view_img in ['N', 'n']:
-            view_flag = False
-        else:
-            print(colored('Error: ' + '\'' + str(view_img) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
-            exit(1)
-
-        sum = 0
-        for file in curr_dir:
-            print()
-            test_img, img = external_data(file, input_dir)
-            predict = model.predict(test_img)
-            
-            try:
-                if test_harness(predict, file):
-                    sum += 1
-            except AttributeError:
-                print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label [0-9], exiting...', color='red', attrs=['bold']))
-                exit(1)
-
-            if view_flag:
-                external_image(img, file, predict)
-            elif not view_flag:
-                print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(predict[0])))
-        print('\nPercentage of correct predictions: ' + str(sum / len(curr_dir) * 100) + '%')
+        external_data_query(model)
     elif external_mnist in ['M', 'm']:
-        incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
-
-        number_range = input("  ○ Enter the number of the image you would like to see (0-9): ")
-        try:
-            assert int(number_range) in range(10)
-        except AssertionError:
-            print(colored('Error: ' + '\'' + str(number_range) + '\'' + ' is not within range (0-9), exiting...', color='red', attrs=['bold']))
-            exit(1)
-
-        predict = model.predict(x_test)
-        incorrect_predict, correct_predict = find_all(x_test, y_test, predict)
-        if incorrect_correct in ['I', 'i']:
-            incorrect_occur = find_occurences(incorrect_predict, int(number_range))
-            v = random_predict(incorrect_occur)
-            generate_image(v, x_test, y_test, predict, incorrect_occur)
-        elif incorrect_correct in ['C', 'c']:
-            correct_occur = find_occurences(correct_predict, int(number_range))
-            v = random_predict(correct_occur)
-            generate_image(v, x_test, y_test, predict, correct_occur)
+        mnist_data_query(model, x_test, y_test)
     else:
         print(colored('Error: ' + '\'' + str(external_mnist) + '\'' + ' is not in the correct format (E/M), exiting...', color='red', attrs=['bold']))
         exit(1)
@@ -216,7 +226,7 @@ def main():
         model = new_model(x_train, y_train)
 
     try:
-        predict(model, x_test, y_test)
+        prediction_query(model, x_test, y_test)
     except UnboundLocalError:
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
         
