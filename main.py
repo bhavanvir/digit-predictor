@@ -177,7 +177,7 @@ def external_data_query(model):
             generate_external_image(img, file, y_predict)
         elif not view_flag:
             print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(y_predict[0])))
-    print('\nPercentage correct: ' + str(sum / len(curr_dir) * 100) + '%')
+    print(colored('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.', color='yellow'))
 
 def mnist_data_query(model, x_test, y_test):
     incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
@@ -203,9 +203,9 @@ def mnist_data_query(model, x_test, y_test):
         generate_random_image(x_test, y_test, y_predict, correct_predict, number_range)
 
 def prediction_query(model, x_test, y_test):
-    print(colored('\n● Note:', color='yellow', attrs=['bold']))
-    print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow', attrs=['bold']))
-    print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow', attrs=['bold']))
+    print(colored('\n● Note:', color='yellow'))
+    print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow'))
+    print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow'))
 
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
