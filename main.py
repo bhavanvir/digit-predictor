@@ -112,10 +112,11 @@ def new_model(x_train, y_train):
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
-    model.fit(x_train, y_train, epochs=500)
+    model.fit(x_train, y_train, epochs=1)
     model.save('mnist_model.h5')
 
-    return model
+    print(colored('Success: model saved as \'mnist_model.h5,\' now exiting...', color='green', attrs=['bold']))
+    exit(0)
 
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
