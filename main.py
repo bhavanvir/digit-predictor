@@ -1,4 +1,5 @@
 import cv2
+import re
 import numpy as np 
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -45,6 +46,14 @@ def random_predict(predict):
 
     return v
 
+def test_harness(predict, file):
+    test_case = re.search(r"[0-9]", file)
+    if str(np.argmax(predict[0])) == test_case.group(0):
+        return True
+    else:
+        return False
+
+
 def find_occurences(prediction, wanted):
     occurences = [k for k, v in prediction.items() if v == wanted]
     
@@ -64,10 +73,15 @@ def external_image(img, file, predict):
 
 def process_image(base_path, processed_path):
     base_img = cv2.imread(base_path)
+
     gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
     (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
     inverted_img = cv2.bitwise_not(black_white_img)
-    cv2.imwrite(processed_path, inverted_img)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    dilation = cv2.dilate(inverted_img, kernel, iterations=5)
+
+    cv2.imwrite(processed_path, dilation)
 
 def external_data(file, input_dir):
     base_path = str(input_dir + '\\' + file)
@@ -131,6 +145,7 @@ def load_model(x_test, y_test):
 
 def predict(model, x_test, y_test):
     print("\nExternal data must be placed in the 'input' folder.")
+    print("\nFor testing purposes, have the input file include the number wanting to be predicted.")
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
         input_dir = str(os.getcwd() + '\input')
@@ -148,15 +163,25 @@ def predict(model, x_test, y_test):
         else:
             print(colored('Error: ' + '\'' + str(view_img) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
             exit(1)
-      
+
+        sum = 0
         for file in curr_dir:
             print()
             test_img, img = external_data(file, input_dir)
             predict = model.predict(test_img)
+            
+            try:
+                if test_harness(predict, file):
+                    sum += 1
+            except AttributeError:
+                print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label [0-9], exiting...', color='red', attrs=['bold']))
+                exit(1)
+
             if view_flag:
                 external_image(img, file, predict)
             elif not view_flag:
                 print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(predict[0])))
+        print('\nPercentage of correct predictions: ' + str(sum / len(curr_dir) * 100) + '%')
     elif external_mnist in ['M', 'm']:
         incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
 
