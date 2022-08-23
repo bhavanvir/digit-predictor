@@ -10,6 +10,7 @@ import tensorflow as tf
 import os
 import random
 import colorama
+import time
 
 colorama.init()
 
@@ -129,10 +130,14 @@ def new_model(x_train, y_train, x_test, y_test):
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
+    start = time.time()
     model.fit(x_train, y_train, batch_size=64, epochs=1000, validation_data=(x_test, y_test))
+    end = time.time()
+    print(colored('Success: model trained in ' + '{:.2f}'.format(end - start) + ' seconds.', color='green', attrs=['bold']))
+
     model.save('mnist_model.h5')
 
-    print(colored('Success: model saved as \'mnist_model.h5,\' now exiting...', color='green', attrs=['bold']))
+    print(colored('Success: model saved as \'mnist_model.h5\' on disk, now exiting...', color='green', attrs=['bold']))
     exit(0)
 
 def load_model(x_test, y_test):
