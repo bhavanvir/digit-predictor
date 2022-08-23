@@ -1,3 +1,7 @@
+from tensorflow import keras
+from keras.datasets import mnist
+from keras.optimizers import SGD
+from termcolor import colored
 import cv2
 import re
 import numpy as np 
@@ -6,21 +10,17 @@ import tensorflow as tf
 import os
 import random
 import colorama
-from tensorflow import keras
-from keras.datasets import mnist
-from keras.optimizers import SGD
-from termcolor import colored
 
 colorama.init()
 
-def generate_image(v, x_test, y_test, predict, occurences):
+def generate_image(v, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
 
     ax.imshow(x_test[v].reshape(28, 28), cmap='gray')
     ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
     actual = np.where(y_test[v] == 1)
-    legend = 'Predicted label: ' + str(np.argmax(predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
+    legend = 'Predicted label: ' + str(np.argmax(y_predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
     ax.text(x=1, y=25.9, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
@@ -28,22 +28,22 @@ def generate_image(v, x_test, y_test, predict, occurences):
 
     plt.show()
 
-def generate_external_image(img, file, predict):
+def generate_external_image(img, file, y_predict):
     fig, ax = plt.subplots(1)
     
     ax.imshow(img.reshape(28, 28), cmap='gray')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
-    ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(predict[0])), bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(y_predict[0])), bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
 
     plt.show()
 
-def generate_random_image(x_test, y_test, predict, prediction, number_range):
+def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
     occurence = find_occurences(prediction, int(number_range))
     v = random_predict(occurence)
-    generate_image(v, x_test, y_test, predict, occurence)
+    generate_image(v, x_test, y_test, y_predict, occurence)
 
 def process_image(base_path, processed_path):
     base_img = cv2.imread(base_path)
@@ -57,27 +57,26 @@ def process_image(base_path, processed_path):
 
     cv2.imwrite(processed_path, dilation)
 
-def find_all(x_test, y_test, predict):
-    incorrect_predict = {}
-    correct_predict = {}
+def find_all(x_test, y_test, y_predict):
+    incorrect_predict, correct_predict = {} , {}
     
     for i in range(len(x_test)):
         index = np.where(y_test[i] == 1)
-        if index[0][0] != np.argmax(predict[i]):
-            incorrect_predict.update({i: np.argmax(predict[i])})
+        if index[0][0] != np.argmax(y_predict[i]):
+            incorrect_predict.update({i: np.argmax(y_predict[i])})
         else:
-            correct_predict.update({i: np.argmax(predict[i])})
+            correct_predict.update({i: np.argmax(y_predict[i])})
     
     return incorrect_predict, correct_predict
 
-def random_predict(predict):
-    v = random.choice(predict)
+def random_predict(occurences):
+    v = random.choice(occurences)
 
     return v
 
-def test_harness(predict, file):
+def test_harness(y_predict, file):
     test_case = re.search(r"[0-9]", file)
-    if str(np.argmax(predict[0])) == test_case.group(0):
+    if str(np.argmax(y_predict[0])) == test_case.group(0):
         return True
     else:
         return False
