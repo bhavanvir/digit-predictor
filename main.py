@@ -129,7 +129,7 @@ def new_model(x_train, y_train, x_test, y_test):
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
-    model.fit(x_train, y_train, batch_size=64, epochs=750, validation_data=(x_test, y_test))
+    model.fit(x_train, y_train, batch_size=64, epochs=1000, validation_data=(x_test, y_test))
     model.save('mnist_model.h5')
 
     print(colored('Success: model saved as \'mnist_model.h5,\' now exiting...', color='green', attrs=['bold']))
