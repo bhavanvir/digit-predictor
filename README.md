@@ -21,9 +21,9 @@ pip install termcolor
 
 To use the built-in Digit-Prediction test harness, have the digit wanting to be predicted successfully in the name of the file. For example, if the image is of digit 3, the file name should be `test_3.jpg` or something similar.
 
-If the `mnist_model.h5` file is not present in the root directory, the Digit-Prediction application will first run a training session to generate the model; the default epoch length is defined as `500`, but this can be changed by altering the `epochs` parameter within the `new_model` function.
+If the `mnist_model.h5` file is not present in the root directory, the Digit-Prediction application will first run a training session to generate the model; the default epoch length is defined as `750`, but this can be changed by altering the `epochs` parameter within the `new_model` function.
 ```python
-model.fit(x_train, y_train, epochs=500)
+model.fit(x_train, y_train, batch_size=64, epochs=750, validation_data=(x_test, y_test))
 ```
 Running the Digit-Prediction application will prompt the user with two branching options: `E` to use your own external data, or `M` to use the MNIST data. 
 
