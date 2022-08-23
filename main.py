@@ -100,8 +100,8 @@ def external_data(file, input_dir):
 
 def mnist_data():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    x_train = x_train.reshape(60000, 784)
-    x_test = x_test.reshape(10000, 784)
+    x_train = x_train.reshape(60000, 784).astype('float32') / 255
+    x_test = x_test.reshape(10000, 784).astype('float32') / 255
 
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
@@ -123,13 +123,13 @@ def create_model():
 
     return model
 
-def new_model(x_train, y_train):
+def new_model(x_train, y_train, x_test, y_test):
     model = create_model()
 
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
-    model.fit(x_train, y_train, epochs=500)
+    model.fit(x_train, y_train, batch_size=64, epochs=750, validation_data=(x_test, y_test))
     model.save('mnist_model.h5')
 
     print(colored('Success: model saved as \'mnist_model.h5,\' now exiting...', color='green', attrs=['bold']))
@@ -149,6 +149,12 @@ def load_model(x_test, y_test):
 def external_data_query(model):
     input_dir = str(os.getcwd() + '\input')
     curr_dir = os.listdir(input_dir)
+
+    try:
+        assert len(curr_dir) > 0
+    except AssertionError:
+        print(colored('Error: no files found in \'input\' directory, exiting...', color='red', attrs=['bold']))
+        exit(1)
 
     view_img = input("● Would you like to view the processed input image? (Y/N): ")
     if view_img in ['Y', 'y']:
@@ -222,7 +228,7 @@ def main():
     if 'mnist_model.h5' in curr_dir:
         model = load_model(x_test, y_test)
     else:
-        model = new_model(x_train, y_train)
+        model = new_model(x_train, y_train, x_test, y_test)
 
     try:
         prediction_query(model, x_test, y_test)
