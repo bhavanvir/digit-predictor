@@ -20,7 +20,7 @@ colorama.init()
 def generate_image(v, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[v].reshape(28, 28), cmap='gray')
+    ax.imshow(x_test[v].reshape(28, 28), cmap='plasma')
     ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
     actual = np.where(y_test[v] == 1)
@@ -35,7 +35,7 @@ def generate_image(v, x_test, y_test, y_predict, occurences):
 def generate_external_image(img, file, y_predict):
     fig, ax = plt.subplots(1)
     
-    ax.imshow(img.reshape(28, 28), cmap='gray')
+    ax.imshow(img.reshape(28, 28), cmap='plasma')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
     ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(y_predict[0])), bbox={'facecolor': 'white', 'pad': 10})
 
@@ -53,12 +53,12 @@ def generate_confusion_martix(y_predict, y_test):
     cf = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
 
     hm = sns.heatmap(cf, annot=True, fmt='d', cmap='plasma')
-    hm.set_yticklabels(hm.get_yticklabels(), rotation=45)
-    hm.set_xticklabels(hm.get_xticklabels(), rotation=45)
+    hm.set_yticklabels(hm.get_yticklabels(), rotation=0)
+    hm.set_xticklabels(hm.get_xticklabels(), rotation=0)
 
-    plt.title(label='Confusion Matrix', fontsize=15)
-    plt.ylabel(ylabel='Predicted Digit', fontsize=12)
-    plt.xlabel(xlabel='Actual Digit', fontsize=12)
+    plt.title(label='Confusion Matrix')
+    plt.ylabel(ylabel='Predicted Digit', fontsize=11)
+    plt.xlabel(xlabel='Actual Digit', fontsize=11)
 
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
@@ -101,9 +101,11 @@ def process_image(file, base_path):
         inverted_img = black_white_img
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    dilation = cv2.dilate(inverted_img, kernel, iterations=5)
+    dialated_img = cv2.dilate(inverted_img, kernel, iterations=5)
 
-    cv2.imwrite(processed_path, dilation)
+    blurred_img = cv2.GaussianBlur(dialated_img, (7, 7), 0)
+
+    cv2.imwrite(processed_path, blurred_img)
 
     return processed_path
 
