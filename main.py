@@ -161,14 +161,15 @@ def new_model(x_train, y_train, x_test, y_test):
     model.summary()
 
     start = time.time()
-    model.fit(x_train, y_train, batch_size=64, epochs=10000, validation_data=(x_test, y_test))
+    model.fit(x_train, y_train, batch_size=64, epochs=35, validation_data=(x_test, y_test))
     end = time.time()
-    elapsed = start - end 
+    elapsed = end - start 
 
-    hours = math.floor(time / 3600)
-    minutes = math.floor((time - (hours * 3600)) / 60)
-    seconds = math.floor(time - (hours * 3600 + minutes * 60))
-    print(colored('Success: model trained in ' + str(hours) + ' hours ' + str(minutes) + ' minutes ' + str(seconds) + ' seconds.', color='green', attrs=['bold']))
+    hours = math.floor(elapsed / 3600)
+    minutes = math.floor((elapsed - (hours * 3600)) / 60)
+    seconds = math.floor(elapsed - (hours * 3600 + minutes * 60))
+
+    print(colored('\nSuccess: model trained in {} hours, {} minutes, and {} seconds.'.format(hours, minutes, seconds), color='green', attrs=['bold']))
 
     model.save('mnist_model.h5')
 
