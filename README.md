@@ -15,6 +15,7 @@ pip install matplotlib
 pip install tensorflow # Keras is installed along with TensorFlow
 pip install colorama
 pip install termcolor
+pip install seaborn
 ```
 
 ## Usage
