@@ -1,4 +1,3 @@
-from email.mime import image
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
