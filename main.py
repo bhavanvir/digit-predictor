@@ -1,3 +1,4 @@
+from email.mime import image
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
@@ -11,6 +12,7 @@ import os
 import random
 import colorama
 import time
+import math
 
 colorama.init()
 
@@ -46,17 +48,47 @@ def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
     v = random_predict(occurence)
     generate_image(v, x_test, y_test, y_predict, occurence)
 
-def process_image(base_path, processed_path):
-    base_img = cv2.imread(base_path)
+def image_composition(black_white_img):
+    num_not_black = cv2.countNonZero(black_white_img)
 
+    dimensions = black_white_img.shape
+    height = black_white_img.shape[0]
+    width = black_white_img.shape[1]
+
+    num_pixels = height * width
+    num_black = num_pixels - num_not_black  
+
+    if num_black < num_not_black:
+        return True
+    else:
+        return False
+
+def rename_file(file):
+    extension = re.search(r"[\.][a-zA-Z]*$", file)
+    base_name = file.split(extension.group(0))[0]
+    new_name = base_name + '_processed' + extension.group(0)
+
+    return new_name
+
+def process_image(file, base_path):
+    new_name = rename_file(file)
+    processed_path = str(os.getcwd() + '\processed_input\\' + new_name)
+
+    base_img = cv2.imread(base_path)
     gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
     (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    inverted_img = cv2.bitwise_not(black_white_img)
+
+    if image_composition(black_white_img):
+        inverted_img = cv2.bitwise_not(black_white_img)
+    elif not image_composition(black_white_img):
+        inverted_img = black_white_img
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     dilation = cv2.dilate(inverted_img, kernel, iterations=5)
 
     cv2.imwrite(processed_path, dilation)
+
+    return processed_path
 
 def find_all(x_test, y_test, y_predict):
     incorrect_predict, correct_predict = {} , {}
@@ -89,9 +121,7 @@ def find_occurences(prediction, wanted):
 
 def external_data(file, input_dir):
     base_path = str(input_dir + '\\' + file)
-    processed_path = str(os.getcwd() + '\processed_input\\' + file)
-
-    process_image(base_path, processed_path)
+    processed_path = process_image(file, base_path)
 
     img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
     img = tf.keras.preprocessing.image.img_to_array(img)
@@ -131,9 +161,14 @@ def new_model(x_train, y_train, x_test, y_test):
     model.summary()
 
     start = time.time()
-    model.fit(x_train, y_train, batch_size=64, epochs=1000, validation_data=(x_test, y_test))
+    model.fit(x_train, y_train, batch_size=64, epochs=10000, validation_data=(x_test, y_test))
     end = time.time()
-    print(colored('Success: model trained in ' + '{:.2f}'.format(end - start) + ' seconds.', color='green', attrs=['bold']))
+    elapsed = start - end 
+
+    hours = math.floor(time / 3600)
+    minutes = math.floor((time - (hours * 3600)) / 60)
+    seconds = math.floor(time - (hours * 3600 + minutes * 60))
+    print(colored('Success: model trained in ' + str(hours) + ' hours ' + str(minutes) + ' minutes ' + str(seconds) + ' seconds.', color='green', attrs=['bold']))
 
     model.save('mnist_model.h5')
 
