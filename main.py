@@ -13,6 +13,7 @@ import random
 import colorama
 import time
 import math
+import seaborn as sns
 
 colorama.init()
 
@@ -47,6 +48,22 @@ def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
     occurence = find_occurences(prediction, int(number_range))
     v = random_predict(occurence)
     generate_image(v, x_test, y_test, y_predict, occurence)
+
+def generate_confusion_martix(y_predict, y_test):
+    cf = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
+
+    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='plasma')
+    hm.set_yticklabels(hm.get_yticklabels(), rotation=45)
+    hm.set_xticklabels(hm.get_xticklabels(), rotation=45)
+
+    plt.title(label='Confusion Matrix', fontsize=15)
+    plt.ylabel(ylabel='Predicted Digit', fontsize=12)
+    plt.xlabel(xlabel='Actual Digit', fontsize=12)
+
+    mng = plt.get_current_fig_manager()
+    mng.window.state('zoomed')
+
+    plt.show()
 
 def image_composition(black_white_img):
     num_not_black = cv2.countNonZero(black_white_img)
@@ -197,7 +214,7 @@ def external_data_query(model):
         print(colored('Error: no files found in \'input\' directory, exiting...', color='red', attrs=['bold']))
         exit(1)
 
-    view_img = input("● Would you like to view the processed input image? (Y/N): ")
+    view_img = input("  ○ Would you like to view the processed input image? (Y/N): ")
     if view_img in ['Y', 'y']:
         view_flag = True
     elif view_img in ['N', 'n']:
@@ -226,15 +243,14 @@ def external_data_query(model):
     print(colored('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.', color='yellow'))
 
 def mnist_data_query(model, x_test, y_test):
-    incorrect_correct = input("● Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
+    incorrect_correct = input("  ○ Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
     try:
         assert incorrect_correct in ['I', 'i', 'C', 'c']
     except AssertionError:
         print(colored('Error: ' + '\'' + str(incorrect_correct) + '\'' + ' is not in the correct format (I/C), exiting...', color='red', attrs=['bold']))
         exit(1)
 
-    number_range = input("  ○ Enter a number of the image you would like to see (0-9): ")
-    print()
+    number_range = input("    ■ Enter a number of the image you would like to see (0-9): ")
     try:
         assert int(number_range) in range(10)
     except AssertionError:
@@ -262,6 +278,18 @@ def prediction_query(model, x_test, y_test):
         print(colored('Error: ' + '\'' + str(external_mnist) + '\'' + ' is not in the correct format (E/M), exiting...', color='red', attrs=['bold']))
         exit(1)
 
+def confusion_matrix_query(model, x_test, y_test):
+    confusion_matrix = input("\n● Would you like to see the confusion matrix for the MNIST data? (Y/N): ")
+
+    if confusion_matrix in ['Y', 'y']:
+        y_predict = model.predict(x_test)
+        generate_confusion_martix(y_test, y_predict)
+    elif confusion_matrix in ['N', 'n']:
+        return
+    else:
+        print(colored('Error: ' + '\'' + str(confusion_matrix) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+        exit(1)
+
 def main():
     x_train, y_train, x_test, y_test = mnist_data()
 
@@ -270,6 +298,8 @@ def main():
         model = load_model(x_test, y_test)
     else:
         model = new_model(x_train, y_train, x_test, y_test)
+
+    confusion_matrix_query(model, x_test, y_test)
 
     try:
         prediction_query(model, x_test, y_test)
