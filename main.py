@@ -226,7 +226,6 @@ def external_data_query(model):
 
     sum = 0
     for file in curr_dir:
-        print()
         test_img, img = external_data(file, input_dir)
         y_predict = model.predict(test_img)
         
@@ -240,8 +239,8 @@ def external_data_query(model):
         if view_flag:
             generate_external_image(img, file, y_predict)
         elif not view_flag:
-            print('File: ' + '\'' + str(file) + '\'' + '\nPrediction: ' + str(np.argmax(y_predict[0])))
-    print(colored('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.', color='yellow'))
+            print('  ○ File: ' + '\'' + str(file) + '\'' + '\n  ○ Prediction: ' + str(np.argmax(y_predict[0])))
+    print('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.')
 
 def mnist_data_query(model, x_test, y_test):
     incorrect_correct = input("  ○ Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
