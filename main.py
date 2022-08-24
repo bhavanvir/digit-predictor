@@ -72,7 +72,7 @@ def image_composition(black_white_img, file):
     try:
         assert size_difference < 500
     except AssertionError:
-        print(colored('Error: ' + '\'' + str(file) + '\'' ' has a width and height difference of ' + str(size_difference) + ', exiting...', color='red', attrs=['bold']))
+        print(colored('Error: ' + '\'' + str(file) + '\'' ' has a dimensional difference that is ' + str(size_difference - 500) + ' pixels greater than the maximum, exiting...', color='red', attrs=['bold']))
         exit(1)
 
     height = black_white_img.shape[0]
