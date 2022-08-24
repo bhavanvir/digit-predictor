@@ -64,10 +64,17 @@ def generate_confusion_martix(y_predict, y_test):
 
     plt.show()
 
-def image_composition(black_white_img):
+def image_composition(black_white_img, file):
     num_not_black = cv2.countNonZero(black_white_img)
 
     dimensions = black_white_img.shape
+    size_difference = abs(dimensions[0] - dimensions[1])
+    try:
+        assert size_difference < 500
+    except AssertionError:
+        print(colored('Error: ' + '\'' + str(file) + '\'' ' has a width and height difference of ' + str(size_difference) + ', exiting...', color='red', attrs=['bold']))
+        exit(1)
+
     height = black_white_img.shape[0]
     width = black_white_img.shape[1]
 
@@ -94,9 +101,9 @@ def process_image(file, base_path):
     gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
     (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    if image_composition(black_white_img):
+    if image_composition(black_white_img, file):
         inverted_img = cv2.bitwise_not(black_white_img)
-    elif not image_composition(black_white_img):
+    elif not image_composition(black_white_img, file):
         inverted_img = black_white_img
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
