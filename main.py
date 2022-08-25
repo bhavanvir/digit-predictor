@@ -233,6 +233,7 @@ def external_data_query(model):
         exit(1)
 
     sum = 0
+    correct_files, incorrect_files = [], []
     for file in curr_dir:
         test_img, img = external_data(file, input_dir)
         y_predict = model.predict(test_img)
@@ -245,6 +246,11 @@ def external_data_query(model):
             print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label (0-9), exiting...', color='red', attrs=['bold']))
             exit(1)
 
+        if actual_label == str(np.argmax(y_predict[0])):
+            correct_files.append(file)
+        else:
+            incorrect_files.append(file)
+
         if view_flag:
             generate_external_image(img, file, y_predict, actual_label)
         elif not view_flag:
@@ -252,7 +258,11 @@ def external_data_query(model):
             print('    ■ Predicted label: ' + str(np.argmax(y_predict[0])))
             print('    ■ Actual label: ' + actual_label)
             
-    print('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.')
+    print('\n● Prediction summary:')
+    print('  ○ Correctly predicted files: ' + str(correct_files)[1:-1])
+    print('    ■ Percentage correct: {:.2f}% ({}/{})'.format(len(correct_files) / (len(correct_files + incorrect_files) * 100), len(correct_files), len(correct_files + incorrect_files)))
+    print('  ○ Incorrectly predicted files: ' + str(incorrect_files)[1:-1])
+    print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format(len(incorrect_files) / (len(correct_files + incorrect_files) * 100), len(incorrect_files), len(correct_files + incorrect_files)))
 
 def mnist_data_query(model, x_test, y_test):
     incorrect_correct = input("  ○ Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
