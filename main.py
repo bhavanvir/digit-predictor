@@ -31,13 +31,14 @@ def generate_image(v, x_test, y_test, y_predict, occurences):
 
     plt.show()
 
-def generate_external_image(img, file, y_predict):
+def generate_external_image(img, file, y_predict, actual_label):
     fig, ax = plt.subplots(1)
     
     ax.imshow(img.reshape(28, 28), cmap='plasma')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
-    ax.text(x=1, y=25.9, s='Predicted label: ' + str(np.argmax(y_predict[0])), bbox={'facecolor': 'white', 'pad': 10})
-
+    legend = 'Predicted label: ' + str(np.argmax(y_predict[0])) + '\n' + 'Actual label: ' + actual_label
+    ax.text(x=1, y=25.9, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+    
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
 
@@ -55,7 +56,7 @@ def generate_confusion_martix(y_predict, y_test):
     hm.set_yticklabels(hm.get_yticklabels(), rotation=0)
     hm.set_xticklabels(hm.get_xticklabels(), rotation=0)
 
-    plt.title(label='Confusion Matrix')
+    plt.title(label='Confusion Matrix for \'mnist_model.h5\'')
     plt.ylabel(ylabel='Predicted Digit', fontsize=11)
     plt.xlabel(xlabel='Actual Digit', fontsize=11)
 
@@ -135,9 +136,9 @@ def random_predict(occurences):
 def test_harness(y_predict, file):
     test_case = re.search(r"[0-9]", file)
     if str(np.argmax(y_predict[0])) == test_case.group(0):
-        return True
+        return test_case.group(0), True
     else:
-        return False
+        return test_case.group(0), False
 
 def find_occurences(prediction, wanted):
     occurences = [k for k, v in prediction.items() if v == wanted]
@@ -235,18 +236,22 @@ def external_data_query(model):
     for file in curr_dir:
         test_img, img = external_data(file, input_dir)
         y_predict = model.predict(test_img)
+        actual_label, boolean_label = test_harness(y_predict, file)
         
         try:
-            if test_harness(y_predict, file):
+            if boolean_label:
                 sum += 1
         except AttributeError:
             print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label (0-9), exiting...', color='red', attrs=['bold']))
             exit(1)
 
         if view_flag:
-            generate_external_image(img, file, y_predict)
+            generate_external_image(img, file, y_predict, actual_label)
         elif not view_flag:
-            print('  ○ File: ' + '\'' + str(file) + '\'' + '\n  ○ Prediction: ' + str(np.argmax(y_predict[0])))
+            print('  ○ File: ' + '\'' + str(file) + '\'')
+            print('    ■ Predicted label: ' + str(np.argmax(y_predict[0])))
+            print('    ■ Actual label: ' + actual_label)
+            
     print('\nPrediction summary: ' + str(sum) + '/' + str(len(curr_dir)) + ' or ' + str(sum / (len(curr_dir)) * 100) + '%' + ' are correct.')
 
 def mnist_data_query(model, x_test, y_test):
