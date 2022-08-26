@@ -260,9 +260,9 @@ def external_data_query(model):
             
     print('\n● Prediction summary:')
     print('  ○ Correctly predicted files: ' + str(correct_files)[1:-1])
-    print('    ■ Percentage correct: {:.2f}% ({}/{})'.format(len(correct_files) / (len(correct_files + incorrect_files) * 100), len(correct_files), len(correct_files + incorrect_files)))
+    print('    ■ Percentage correct: {:.2f}% ({}/{})'.format((len(correct_files) / len(correct_files + incorrect_files)) * 100, len(correct_files), len(correct_files + incorrect_files)))
     print('  ○ Incorrectly predicted files: ' + str(incorrect_files)[1:-1])
-    print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format(len(incorrect_files) / (len(correct_files + incorrect_files) * 100), len(incorrect_files), len(correct_files + incorrect_files)))
+    print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format((len(incorrect_files) / (len(correct_files + incorrect_files))) * 100, len(incorrect_files), len(correct_files + incorrect_files)))
 
 def mnist_data_query(model, x_test, y_test):
     incorrect_correct = input("  ○ Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
