@@ -26,10 +26,15 @@ If the `mnist_model.h5` file is not present in the root directory, the Digit-Pre
 ```python
 model.fit(x_train, y_train, batch_size=64, epochs=10000, validation_data=(x_test, y_test))
 ```
+
+<br>
+
 Running the Digit-Prediction application will prompt the user with two branching options: `E` to use your own external data, or `M` to use the MNIST data. 
 
 1. If `E` is selected, the user will be prompted with the option to view the processed version of their input image, or to recieve a command-line prediction along with each image read from the `input` directory.
 2. If `M` is selected, the user will be prompted with the option to view an incorrectly predicted image, or a correctly predicted image. In either case, the user will then be asked to input a digit between 0 and 9 inclusive, and the application will then show an example.
+
+Users can also select either `Y` or `N` during application start-up, to view the confusion matrix associated with the `mnist_model.h5` file; the confusion matrix serves as a visual representation of the accuracy of the model.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
