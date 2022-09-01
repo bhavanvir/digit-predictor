@@ -168,14 +168,14 @@ def mnist_data():
 
 def create_model():
     model = keras.Sequential([
-        	keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)),
-            keras.layers.MaxPooling2D((2, 2)),
-            keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
-            keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
-            keras.layers.MaxPooling2D((2, 2)),
-            keras.layers.Flatten(),
-            keras.layers.Dense(100, activation='relu', kernel_initializer='he_uniform'),
-            keras.layers.Dense(10, activation='softmax')
+        keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
+        keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Flatten(),
+        keras.layers.Dense(100, activation='relu', kernel_initializer='he_uniform'),
+        keras.layers.Dense(10, activation='softmax')
     ])
 
     model.compile(
