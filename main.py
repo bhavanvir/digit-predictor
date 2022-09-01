@@ -151,14 +151,15 @@ def external_data(file, input_dir):
 
     img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
     img = tf.keras.preprocessing.image.img_to_array(img)
-    test_img = img.reshape((1, 784))
+    test_img = img.reshape(1, 28, 28, 1)
+    test_img = test_img.astype('float32') / 255
 
     return test_img, img
 
 def mnist_data():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
-    x_train = x_train.reshape(60000, 784).astype('float32') / 255
-    x_test = x_test.reshape(10000, 784).astype('float32') / 255
+    x_train = x_train.reshape(60000, 28, 28, 1).astype('float32') / 255
+    x_test = x_test.reshape(10000, 28, 28, 1).astype('float32') / 255
 
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
@@ -167,13 +168,18 @@ def mnist_data():
 
 def create_model():
     model = keras.Sequential([
-        keras.layers.Dense(784, activation='relu', input_shape=(784,)),
-        keras.layers.Dropout(0.2),
-        keras.layers.Dense(10, activation='softmax')
+        	keras.layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
+            keras.layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'),
+            keras.layers.MaxPooling2D((2, 2)),
+            keras.layers.Flatten(),
+            keras.layers.Dense(100, activation='relu', kernel_initializer='he_uniform'),
+            keras.layers.Dense(10, activation='softmax')
     ])
 
     model.compile(
-        optimizer=SGD(0.001),
+        optimizer=SGD(learning_rate=0.01, momentum=0.9),
         loss='categorical_crossentropy',
         metrics=['accuracy']
     )
@@ -209,7 +215,7 @@ def load_model(x_test, y_test):
     model.summary()
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
-    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}'.format(loss), color='green', attrs=['bold']))
+    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%'.format(loss), color='green', attrs=['bold']))
 
     return model
 
