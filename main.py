@@ -39,7 +39,15 @@ def generate_image(v, x_test, y_test, y_predict, occurences):
 
     actual = np.where(y_test[v] == 1)
     legend = 'Predicted label: ' + str(np.argmax(y_predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
-    ax.text(x=1, y=25.9, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+
+    legend = ""
+    for k, v in class_probabilities(y_predict, v).items():
+        if k != 9:
+            legend += 'Class: {}, Probability: {}%\n'.format(k, v)
+        else:
+            legend += 'Class: {}, Probability: {}%'.format(k, v)
+    ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
@@ -51,9 +59,18 @@ def generate_external_image(img, file, y_predict, actual_label):
     
     ax.imshow(img.reshape(28, 28), cmap='plasma')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
+
     legend = 'Predicted label: ' + str(np.argmax(y_predict[0])) + '\n' + 'Actual label: ' + actual_label
-    ax.text(x=1, y=25.9, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
     
+    legend = ""
+    for k, v in class_probabilities(y_predict, 0).items():
+        if k != 9:
+            legend += 'Class: {}, Probability: {}%\n'.format(k, v)
+        else:
+            legend += 'Class: {}, Probability: {}%'.format(k, v)
+    ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+
     mng = plt.get_current_fig_manager()
     mng.window.state('zoomed')
 
@@ -233,6 +250,15 @@ def load_model(x_test, y_test):
 
     return model
 
+def class_probabilities(y_predict, index):
+    classes = {}
+    for x in y_predict[index]:
+        idx = np.where(y_predict[index] == x)
+        rounded_val = '{:.2f}'.format(x * 100)
+        classes.update({idx[0][0]: rounded_val})
+    
+    return classes
+
 def external_data_query(model):
     input_dir = str(os.getcwd() + '\input')
     curr_dir = os.listdir(input_dir)
@@ -334,15 +360,21 @@ def confusion_matrix_query(model, x_test, y_test):
         exit(1)
 
 def create_dir():
-    os.mkdir(os.getcwd() + '/processed_input')
+    try:
+        os.mkdir(os.getcwd() + '/processed_input')
+    except FileExistsError:
+        pass
 
 def dir_cleanup():
-    curr_dir = os.listdir(os.getcwd() + '/processed_input')
-    for file in curr_dir:
-        extension = re.search(r"[\.][a-zA-Z]*$", file)
-        if (extension.group(0)).lower() in ['.png', '.jpg', '.jpeg']:
-            os.remove(os.getcwd() + '/processed_input/' + file)
-    os.rmdir(os.getcwd() + '/processed_input')
+    try:
+        curr_dir = os.listdir(os.getcwd() + '/processed_input')
+        for file in curr_dir:
+            extension = re.search(r"[\.][a-zA-Z]*$", file)
+            if (extension.group(0)).lower() in ['.png', '.jpg', '.jpeg']:
+                os.remove(os.getcwd() + '/processed_input/' + file)
+        os.rmdir(os.getcwd() + '/processed_input')
+    except FileNotFoundError:
+        pass
 
 def main():
     x_train, y_train, x_test, y_test = mnist_data()
