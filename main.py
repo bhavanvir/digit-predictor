@@ -34,7 +34,7 @@ import re
 def generate_image(v, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[v].reshape(28, 28), cmap='plasma')
+    ax.imshow(x_test[v].reshape(28, 28), cmap='gray')
     ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
     actual = np.where(y_test[v] == 1)
@@ -57,7 +57,7 @@ def generate_image(v, x_test, y_test, y_predict, occurences):
 def generate_external_image(img, file, y_predict, actual_label):
     fig, ax = plt.subplots(1)
     
-    ax.imshow(img.reshape(28, 28), cmap='plasma')
+    ax.imshow(img.reshape(28, 28), cmap='gray')
     ax.set_title('Image ' + '\'' + str(file) + '\'' + ' After Processing')
 
     legend = 'Predicted label: ' + str(np.argmax(y_predict[0])) + '\n' + 'Actual label: ' + actual_label
@@ -84,7 +84,7 @@ def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
 def generate_confusion_martix(y_predict, y_test):
     cf = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
 
-    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='plasma')
+    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='gray')
     hm.set_yticklabels(hm.get_yticklabels(), rotation=0)
     hm.set_xticklabels(hm.get_xticklabels(), rotation=0)
 
