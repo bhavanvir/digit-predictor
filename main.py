@@ -15,6 +15,8 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import EarlyStopping
 
 # Data Plotting
 import matplotlib.pyplot as plt
@@ -168,7 +170,10 @@ def random_predict(occurences):
     return v
 
 def test_harness(y_predict, file):
-    test_case = re.search(r"[0-9]", file)
+    extension = re.search(r"[\.][a-zA-Z]*$", file)
+    removed_extension = file.strip(extension.group(0))
+    
+    test_case = re.search(r"[0-9]$", removed_extension)
     if str(np.argmax(y_predict[0])) == test_case.group(0):
         return test_case.group(0), True
     else:
@@ -220,17 +225,46 @@ def create_model():
 
     return model
 
+def data_transformation(x_train):
+    datagen = ImageDataGenerator(
+        featurewise_center=False,
+        samplewise_center=False,
+        featurewise_std_normalization=False,
+        samplewise_std_normalization=False,
+        zca_whitening=False,
+        rotation_range=10,
+        zoom_range = 0.1, 
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        horizontal_flip=False,
+        vertical_flip=False
+    )
+    datagen.fit(x_train)
+
+    return datagen
+
 def new_model(x_train, y_train, x_test, y_test):
     model = create_model()
+    datagen = data_transformation(x_train)
 
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
 
-    start = time.time()
-    model.fit(x_train, y_train, batch_size=64, epochs=35, validation_data=(x_test, y_test))
-    end = time.time()
-    elapsed = end - start 
+    early_stopping_monitor = EarlyStopping(
+        monitor='val_accuracy',
+        min_delta=0,
+        patience=50,
+        verbose=0,
+        mode='max',
+        baseline=None,
+        restore_best_weights=True
+    )
 
+    start = time.time()
+    model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0] // 64, callbacks=[early_stopping_monitor])
+    end = time.time()
+
+    elapsed = end - start 
     hours = math.floor(elapsed / 3600)
     minutes = math.floor((elapsed - (hours * 3600)) / 60)
     seconds = math.floor(elapsed - (hours * 3600 + minutes * 60))
@@ -368,7 +402,7 @@ def create_dir():
     except FileExistsError:
         pass
 
-def dir_cleanup():
+def delete_dir():
     try:
         curr_dir = os.listdir(os.getcwd() + '/processed_input')
         for file in curr_dir:
@@ -395,7 +429,7 @@ def main():
     except UnboundLocalError:
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
 
-    dir_cleanup()
+    delete_dir()
         
 if __name__ == "__main__":
     main()
