@@ -88,7 +88,7 @@ def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
 def generate_confusion_martix(y_predict, y_test):
     cf = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
 
-    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='gray')
+    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='RdYlGn')
     hm.set_yticklabels(hm.get_yticklabels(), rotation=0)
     hm.set_xticklabels(hm.get_xticklabels(), rotation=0)
 
@@ -144,7 +144,7 @@ def process_image(file, base_path):
         inverted_img = black_white_img
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    dialated_img = cv2.dilate(inverted_img, kernel, iterations=5)
+    dialated_img = cv2.dilate(inverted_img, kernel, iterations=15)
 
     blurred_img = cv2.GaussianBlur(dialated_img, (7, 7), 0)
 
