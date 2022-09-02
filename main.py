@@ -41,12 +41,13 @@ def generate_image(v, x_test, y_test, y_predict, occurences):
     legend = 'Predicted label: ' + str(np.argmax(y_predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
     ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
-    legend = ""
+    legend, i = "", 0
     for k, v in class_probabilities(y_predict, v).items():
-        if k != 9:
-            legend += 'Class: {}, Probability: {}%\n'.format(k, v)
+        if i != 9:
+            legend += 'Label: {}, Probability: {:.2f}%\n'.format(k, v * 100)
         else:
-            legend += 'Class: {}, Probability: {}%'.format(k, v)
+            legend += 'Label: {}, Probability: {:.2f}%'.format(k, v * 100)
+        i += 1
     ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
@@ -63,12 +64,13 @@ def generate_external_image(img, file, y_predict, actual_label):
     legend = 'Predicted label: ' + str(np.argmax(y_predict[0])) + '\n' + 'Actual label: ' + actual_label
     ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
     
-    legend = ""
+    legend, i = "", 0
     for k, v in class_probabilities(y_predict, 0).items():
-        if k != 9:
-            legend += 'Class: {}, Probability: {}%\n'.format(k, v)
+        if i != 9:
+            legend += 'Label: {}, Probability: {:.2f}%\n'.format(k, v * 100)
         else:
-            legend += 'Class: {}, Probability: {}%'.format(k, v)
+            legend += 'Label: {}, Probability: {:.2f}%'.format(k, v * 100)
+        i += 1
     ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
     mng = plt.get_current_fig_manager()
@@ -254,9 +256,10 @@ def class_probabilities(y_predict, index):
     classes = {}
     for x in y_predict[index]:
         idx = np.where(y_predict[index] == x)
-        rounded_val = '{:.2f}'.format(x * 100)
-        classes.update({idx[0][0]: rounded_val})
-    
+        classes.update({idx[0][0]: x})
+
+    classes = {k: v for k, v in sorted(classes.items(), key=lambda item: item[1], reverse=True)}
+
     return classes
 
 def external_data_query(model):
