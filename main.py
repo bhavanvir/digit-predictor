@@ -1,20 +1,35 @@
+# Operating System
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+# Image Processing
+import cv2
+
+# Math 
+import math
+import numpy as np 
+import random
+
+# Machine Learning
+import tensorflow as tf
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
 from termcolor import colored
-import cv2
-import re
-import numpy as np 
+
+# Data Plotting
 import matplotlib.pyplot as plt
-import tensorflow as tf
-import os
-import random
-import colorama
-import time
-import math
 import seaborn as sns
 
+# Output Formatting
+import colorama
 colorama.init()
+
+# Time Tracking
+import time
+
+# String Validation
+import re
 
 def generate_image(v, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
@@ -211,8 +226,7 @@ def new_model(x_train, y_train, x_test, y_test):
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
 
-    print(colored('\nSuccess: loading \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
-    model.summary()
+    print(colored('\nSuccess: loaded \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
     print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%'.format(loss), color='green', attrs=['bold']))
@@ -299,6 +313,7 @@ def prediction_query(model, x_test, y_test):
 
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
+        create_dir()
         external_data_query(model)
     elif external_mnist in ['M', 'm']:
         mnist_data_query(model, x_test, y_test)
@@ -318,6 +333,17 @@ def confusion_matrix_query(model, x_test, y_test):
         print(colored('Error: ' + '\'' + str(confusion_matrix) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
         exit(1)
 
+def create_dir():
+    os.mkdir(os.getcwd() + '/processed_input')
+
+def dir_cleanup():
+    curr_dir = os.listdir(os.getcwd() + '/processed_input')
+    for file in curr_dir:
+        extension = re.search(r"[\.][a-zA-Z]*$", file)
+        if (extension.group(0)).lower() in ['.png', '.jpg', '.jpeg']:
+            os.remove(os.getcwd() + '/processed_input/' + file)
+    os.rmdir(os.getcwd() + '/processed_input')
+
 def main():
     x_train, y_train, x_test, y_test = mnist_data()
 
@@ -333,6 +359,8 @@ def main():
         prediction_query(model, x_test, y_test)
     except UnboundLocalError:
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
+
+    dir_cleanup()
         
 if __name__ == "__main__":
     main()
