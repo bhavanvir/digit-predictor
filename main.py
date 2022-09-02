@@ -15,7 +15,6 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.datasets import mnist
 from keras.optimizers import SGD
-from termcolor import colored
 
 # Data Plotting
 import matplotlib.pyplot as plt
@@ -24,6 +23,7 @@ import seaborn as sns
 # Output Formatting
 import colorama
 colorama.init()
+from termcolor import colored
 
 # Time Tracking
 import time
