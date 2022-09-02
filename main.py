@@ -226,10 +226,10 @@ def new_model(x_train, y_train, x_test, y_test):
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
 
-    print(colored('\nSuccess: loaded \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
+    print(colored('\nSuccess: loading... \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
-    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%'.format(loss), color='green', attrs=['bold']))
+    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%.'.format(loss), color='green', attrs=['bold']))
 
     return model
 
