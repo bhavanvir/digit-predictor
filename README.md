@@ -11,11 +11,12 @@ Several dependencies are required to run Digit-Prediction that are not included 
 Using the package manager [pip](https://pip.pypa.io/en/stable/) to install external modules:
 ```bash
 pip install cv2
-pip install matplotlib 
-pip install tensorflow # Keras is installed along with TensorFlow
-pip install colorama
-pip install termcolor
+pip install numpy 
+pip install tensorflow
+pip install keras
+pip install matplotlib
 pip install seaborn
+pip install colorama
 ```
 
 ## Usage
