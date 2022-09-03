@@ -33,27 +33,19 @@ import time
 # String Validation
 import re
 
-def generate_image(v, x_test, y_test, y_predict, occurences):
+def generate_image(value, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[v].reshape(28, 28), cmap='gray')
-    ax.set_title('Image Number ' + str(occurences.index(v)) + ' of ' + str(len(occurences)) + ' Total Occurences')
+    ax.imshow(x_test[value].reshape(28, 28), cmap='gray')
+    ax.set_title('Image Number ' + str(occurences.index(value)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
-    actual = np.where(y_test[v] == 1)
-    legend = 'Predicted label: ' + str(np.argmax(y_predict[v])) + '\n' + 'Actual label: ' + str(actual[0][0])
+    actual = np.where(y_test[value] == 1)
+    legend = 'Predicted label: ' + str(np.argmax(y_predict[value])) + '\n' + 'Actual label: ' + str(actual[0][0])
     ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
-    legend, i = "", 0
-    for k, v in class_probabilities(y_predict, v).items():
-        if i != 9:
-            legend += 'Label: {}, Probability: {:.2f}%\n'.format(k, v * 100)
-        else:
-            legend += 'Label: {}, Probability: {:.2f}%'.format(k, v * 100)
-        i += 1
-    ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=-10, y=5.85, s=class_legend_label(y_predict, value), bbox={'facecolor': 'white', 'pad': 10})
 
-    mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
+    zoom_plot_window()
 
     plt.show()
 
@@ -66,45 +58,52 @@ def generate_external_image(img, file, y_predict, actual_label):
     legend = 'Predicted label: ' + str(np.argmax(y_predict[0])) + '\n' + 'Actual label: ' + actual_label
     ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
     
-    legend, i = "", 0
-    for k, v in class_probabilities(y_predict, 0).items():
-        if i != 9:
-            legend += 'Label: {}, Probability: {:.2f}%\n'.format(k, v * 100)
-        else:
-            legend += 'Label: {}, Probability: {:.2f}%'.format(k, v * 100)
-        i += 1
-    ax.text(x=-10, y=5.85, s=legend, bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=-10, y=5.85, s=class_legend_label(y_predict, 0), bbox={'facecolor': 'white', 'pad': 10})
 
-    mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
+    zoom_plot_window()
 
     plt.show()
 
 def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
     occurence = find_occurences(prediction, int(number_range))
-    v = random_predict(occurence)
-    generate_image(v, x_test, y_test, y_predict, occurence)
+    value = random_predict(occurence)
+    generate_image(value, x_test, y_test, y_predict, occurence)
 
 def generate_confusion_martix(y_predict, y_test):
-    cf = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
+    confusion_matrix = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
 
-    hm = sns.heatmap(cf, annot=True, fmt='d', cmap='RdYlGn')
-    hm.set_yticklabels(hm.get_yticklabels(), rotation=0)
-    hm.set_xticklabels(hm.get_xticklabels(), rotation=0)
+    heat_map = sns.heatmap(confusion_matrix, annot=True, fmt='d', cmap='RdYlGn')
+    heat_map.set_yticklabels(heat_map.get_yticklabels(), rotation=0)
+    heat_map.set_xticklabels(heat_map.get_xticklabels(), rotation=0)
 
     plt.title(label='Confusion Matrix for \'mnist_model.h5\'')
     plt.ylabel(ylabel='Predicted Digit', fontsize=11)
     plt.xlabel(xlabel='Actual Digit', fontsize=11)
 
-    mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
+    zoom_plot_window()
 
     plt.show()
 
-def image_composition(black_white_img, file):
-    num_not_black = cv2.countNonZero(black_white_img)
+def zoom_plot_window():
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
 
-    dimensions = black_white_img.shape
+def class_legend_label(y_predict, index):
+    legend = ""
+    start_index = 0
+    for key, value in class_probabilities(y_predict, index).items():
+        if start_index != 9:
+            legend += 'Label: {}, Probability: {:.2f}%\n'.format(key, value * 100)
+        else:
+            legend += 'Label: {}, Probability: {:.2f}%'.format(key, value * 100)
+        start_index += 1
+
+    return legend
+
+def image_composition(black_white_image, file):
+    number_not_black = cv2.countNonZero(black_white_image)
+
+    dimensions = black_white_image.shape
     size_difference = abs(dimensions[0] - dimensions[1])
     try:
         assert size_difference < 500
@@ -112,13 +111,13 @@ def image_composition(black_white_img, file):
         print(colored('Error: ' + '\'' + str(file) + '\'' ' has a dimensional difference that is ' + str(size_difference - 500) + ' pixels greater than the maximum, exiting...', color='red', attrs=['bold']))
         exit(1)
 
-    height = black_white_img.shape[0]
-    width = black_white_img.shape[1]
+    height = black_white_image.shape[0]
+    width = black_white_image.shape[1]
 
-    num_pixels = height * width
-    num_black = num_pixels - num_not_black  
+    number_pixels = height * width
+    number_black = number_pixels - number_not_black  
 
-    if num_black < num_not_black:
+    if number_black < number_not_black:
         return True
     else:
         return False
@@ -134,21 +133,21 @@ def process_image(file, base_path):
     new_name = rename_file(file)
     processed_path = str(os.getcwd() + '\processed_input\\' + new_name)
 
-    base_img = cv2.imread(base_path)
-    gray_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2GRAY)
-    (thresh, black_white_img) = cv2.threshold(gray_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    base_image = cv2.imread(base_path)
+    gray_image = cv2.cvtColor(base_image, cv2.COLOR_BGR2GRAY)
+    (thresh, black_white_image) = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-    if image_composition(black_white_img, file):
-        inverted_img = cv2.bitwise_not(black_white_img)
-    elif not image_composition(black_white_img, file):
-        inverted_img = black_white_img
+    if image_composition(black_white_image, file):
+        inverted_image = cv2.bitwise_not(black_white_image)
+    elif not image_composition(black_white_image, file):
+        inverted_image = black_white_image
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    dialated_img = cv2.dilate(inverted_img, kernel, iterations=15)
+    dialated_image = cv2.dilate(inverted_image, kernel, iterations=15)
 
-    blurred_img = cv2.GaussianBlur(dialated_img, (7, 7), 0)
+    blurred_image = cv2.GaussianBlur(dialated_image, (7, 7), 0)
 
-    cv2.imwrite(processed_path, blurred_img)
+    cv2.imwrite(processed_path, blurred_image)
 
     return processed_path
 
@@ -184,8 +183,8 @@ def find_occurences(prediction, wanted):
     
     return occurences
 
-def external_data(file, input_dir):
-    base_path = str(input_dir + '\\' + file)
+def external_data(file, input_directory):
+    base_path = str(input_directory + '\\' + file)
     processed_path = process_image(file, base_path)
 
     img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
@@ -226,7 +225,7 @@ def create_model():
     return model
 
 def data_transformation(x_train):
-    datagen = ImageDataGenerator(
+    data_generator = ImageDataGenerator(
         featurewise_center=False,
         samplewise_center=False,
         featurewise_std_normalization=False,
@@ -239,13 +238,13 @@ def data_transformation(x_train):
         horizontal_flip=False,
         vertical_flip=False
     )
-    datagen.fit(x_train)
+    data_generator.fit(x_train)
 
-    return datagen
+    return data_generator
 
 def new_model(x_train, y_train, x_test, y_test):
     model = create_model()
-    datagen = data_transformation(x_train)
+    data_generator = data_transformation(x_train)
 
     print(colored('\nSuccess: training new model...', color='green', attrs=['bold']))
     model.summary()
@@ -261,7 +260,7 @@ def new_model(x_train, y_train, x_test, y_test):
     )
 
     start = time.time()
-    model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0] // 64, callbacks=[early_stopping_monitor])
+    model.fit(data_generator.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0] // 64, callbacks=[early_stopping_monitor])
     end = time.time()
 
     elapsed = end - start 
@@ -280,44 +279,44 @@ def load_model(x_test, y_test):
 
     print(colored('\nSuccess: loading \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
 
-    loss, acc = model.evaluate(x_test, y_test, verbose=2)
-    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%.'.format(loss), color='green', attrs=['bold']))
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=2)
+    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * accuracy) + ' and loss {:.2f}%.'.format(loss), color='green', attrs=['bold']))
 
     return model
 
 def class_probabilities(y_predict, index):
     classes = {}
-    for x in y_predict[index]:
-        idx = np.where(y_predict[index] == x)
-        classes.update({idx[0][0]: x})
+    for value in y_predict[index]:
+        position = np.where(y_predict[index] == value)
+        classes.update({position[0][0]: value})
 
-    classes = {k: v for k, v in sorted(classes.items(), key=lambda item: item[1], reverse=True)}
+    classes = {key: value for key, value in sorted(classes.items(), key=lambda item: item[1], reverse=True)}
 
     return classes
 
 def external_data_query(model):
-    input_dir = str(os.getcwd() + '\input')
-    curr_dir = os.listdir(input_dir)
+    input_directory = str(os.getcwd() + '\input')
+    current_directory = os.listdir(input_directory)
 
     try:
-        assert len(curr_dir) > 0
+        assert len(current_directory) > 0
     except AssertionError:
         print(colored('Error: no files found in \'input\' directory, exiting...', color='red', attrs=['bold']))
         exit(1)
 
-    view_img = input("  ○ Would you like to view the processed input image? (Y/N): ")
-    if view_img in ['Y', 'y']:
+    view_image = input("  ○ Would you like to view the processed input image? (Y/N): ")
+    if view_image in ['Y', 'y']:
         view_flag = True
-    elif view_img in ['N', 'n']:
+    elif view_image in ['N', 'n']:
         view_flag = False
     else:
-        print(colored('Error: ' + '\'' + str(view_img) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+        print(colored('Error: ' + '\'' + str(view_image) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
         exit(1)
 
     sum = 0
     correct_files, incorrect_files = [], []
-    for file in curr_dir:
-        test_img, img = external_data(file, input_dir)
+    for file in current_directory:
+        test_img, img = external_data(file, input_directory)
         y_predict = model.predict(test_img)
         actual_label, boolean_label = test_harness(y_predict, file)
         
@@ -335,7 +334,7 @@ def external_data_query(model):
 
         if view_flag:
             generate_external_image(img, file, y_predict, actual_label)
-        elif not view_flag:
+        else:
             print('  ○ File: ' + '\'' + str(file) + '\'')
             print('    ■ Predicted label: ' + str(np.argmax(y_predict[0])))
             print('    ■ Actual label: ' + actual_label)
@@ -375,7 +374,7 @@ def prediction_query(model, x_test, y_test):
 
     external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
     if external_mnist in ['E', 'e']:
-        create_dir()
+        create_directory()
         external_data_query(model)
     elif external_mnist in ['M', 'm']:
         mnist_data_query(model, x_test, y_test)
@@ -395,16 +394,16 @@ def confusion_matrix_query(model, x_test, y_test):
         print(colored('Error: ' + '\'' + str(confusion_matrix) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
         exit(1)
 
-def create_dir():
+def create_directory():
     try:
         os.mkdir(os.getcwd() + '/processed_input')
     except FileExistsError:
         pass
 
-def delete_dir():
+def delete_directory():
     try:
-        curr_dir = os.listdir(os.getcwd() + '/processed_input')
-        for file in curr_dir:
+        current_directory = os.listdir(os.getcwd() + '/processed_input')
+        for file in current_directory:
             extension = re.search(r"[\.][a-zA-Z]*$", file)
             if (extension.group(0)).lower() in ['.png', '.jpg', '.jpeg']:
                 os.remove(os.getcwd() + '/processed_input/' + file)
@@ -415,8 +414,8 @@ def delete_dir():
 def main():
     x_train, y_train, x_test, y_test = mnist_data()
 
-    curr_dir = os.listdir(os.getcwd())
-    if 'mnist_model.h5' in curr_dir:
+    current_directory = os.listdir(os.getcwd())
+    if 'mnist_model.h5' in current_directory:
         model = load_model(x_test, y_test)
     else:
         model = new_model(x_train, y_train, x_test, y_test)
@@ -428,7 +427,7 @@ def main():
     except UnboundLocalError:
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
 
-    delete_dir()
+    delete_directory()
         
 if __name__ == "__main__":
     main()
