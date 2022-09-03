@@ -268,7 +268,6 @@ def new_model(x_train, y_train, x_test, y_test):
     hours = math.floor(elapsed / 3600)
     minutes = math.floor((elapsed - (hours * 3600)) / 60)
     seconds = math.floor(elapsed - (hours * 3600 + minutes * 60))
-
     print(colored('\nSuccess: model trained in {} hours, {} minutes, and {} seconds.'.format(hours, minutes, seconds), color='green', attrs=['bold']))
 
     model.save('mnist_model.h5')
@@ -279,7 +278,7 @@ def new_model(x_train, y_train, x_test, y_test):
 def load_model(x_test, y_test):
     model = tf.keras.models.load_model("mnist_model.h5")
 
-    print(colored('\nSuccess: loading... \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
+    print(colored('\nSuccess: loading \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
 
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
     print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * acc) + ' and loss {:.2f}%.'.format(loss), color='green', attrs=['bold']))
