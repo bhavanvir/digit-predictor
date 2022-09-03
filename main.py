@@ -33,17 +33,17 @@ import time
 # String Validation
 import re
 
-def generate_image(value, x_test, y_test, y_predict, occurences):
+def generate_mnist_image(random_value, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
 
-    ax.imshow(x_test[value].reshape(28, 28), cmap='gray')
-    ax.set_title('Image Number ' + str(occurences.index(value)) + ' of ' + str(len(occurences)) + ' Total Occurences')
+    ax.imshow(x_test[random_value].reshape(28, 28), cmap='gray')
+    ax.set_title('Image Number ' + str(occurences.index(random_value)) + ' of ' + str(len(occurences)) + ' Total Occurences')
 
-    actual = np.where(y_test[value] == 1)
-    legend = 'Predicted label: ' + str(np.argmax(y_predict[value])) + '\n' + 'Actual label: ' + str(actual[0][0])
+    actual = np.where(y_test[random_value] == 1)
+    legend = 'Predicted label: ' + str(np.argmax(y_predict[random_value])) + '\n' + 'Actual label: ' + str(actual[0][0])
     ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
 
-    ax.text(x=-10, y=5.85, s=class_legend_label(y_predict, value), bbox={'facecolor': 'white', 'pad': 10})
+    ax.text(x=-10, y=5.85, s=class_legend_label(y_predict, random_value), bbox={'facecolor': 'white', 'pad': 10})
 
     zoom_plot_window()
 
@@ -66,8 +66,8 @@ def generate_external_image(img, file, y_predict, actual_label):
 
 def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
     occurence = find_occurences(prediction, int(number_range))
-    value = random_predict(occurence)
-    generate_image(value, x_test, y_test, y_predict, occurence)
+    random_value = random_predict(occurence)
+    generate_mnist_image(random_value, x_test, y_test, y_predict, occurence)
 
 def generate_confusion_martix(y_predict, y_test):
     confusion_matrix = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
@@ -77,8 +77,8 @@ def generate_confusion_martix(y_predict, y_test):
     heat_map.set_xticklabels(heat_map.get_xticklabels(), rotation=0)
 
     plt.title(label='Confusion Matrix for \'mnist_model.h5\'')
-    plt.ylabel(ylabel='Predicted Digit', fontsize=11)
-    plt.xlabel(xlabel='Actual Digit', fontsize=11)
+    plt.ylabel(ylabel='Predicted Label', fontsize=11)
+    plt.xlabel(xlabel='Actual Label', fontsize=11)
 
     zoom_plot_window()
 
@@ -164,9 +164,9 @@ def find_all(x_test, y_test, y_predict):
     return incorrect_predict, correct_predict
 
 def random_predict(occurences):
-    v = random.choice(occurences)
+    random_value = random.choice(occurences)
 
-    return v
+    return random_value
 
 def test_harness(y_predict, file):
     extension = re.search(r"[\.][a-zA-Z]*$", file)
