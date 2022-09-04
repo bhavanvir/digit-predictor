@@ -1,8 +1,9 @@
 # Operating System
 import os
+from pyexpat import model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# Paint GUI
+# GUI
 from tkinter import *
 from tkinter import ttk, colorchooser
 from tkinter.colorchooser import askcolor
@@ -100,7 +101,13 @@ class Paint(object):
 
         return processed_path
 
+    def load_model(self):
+        model = tf.keras.models.load_model("mnist_model.h5")
+
+        return model
+
     def predict_drawing(self):
+        model = self.load_model()
         processed_path = self.process_image()
 
         img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
@@ -177,15 +184,12 @@ def rename_file(file):
 
     return new_name
 
-def load_model():
-    model = tf.keras.models.load_model("mnist_model.h5")
-
-    return model
-
-if __name__ == '__main__':
-    model = load_model()
+def main():
     create_directory('screenshot')
     create_directory('processed_screenshot')
     Paint()
     delete_directory('screenshot')
     delete_directory('processed_screenshot')
+
+if __name__ == '__main__':
+    main()
