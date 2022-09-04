@@ -14,7 +14,10 @@ import cv2
 import numpy as np
 
 # Machine Learning
+import logging
 import tensorflow as tf
+logger = tf.get_logger()
+logger.setLevel(logging.ERROR)
 
 # Time Delay
 import time
@@ -23,7 +26,6 @@ import time
 import re
 
 class Paint(object):
-
     DEFAULT_PEN_SIZE = 5.0
     DEFAULT_COLOR = 'black'
 
