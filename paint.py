@@ -106,6 +106,14 @@ class Paint(object):
 
         return model
 
+    def class_probabilities(self, y_predict, index):
+        classes = {}
+        for value in y_predict[index]:
+            position = np.where(y_predict[index] == value)
+            classes.update({position[0][0]: str('{:.2f}'.format(value * 100))})
+
+        return classes
+
     def predict_drawing(self):
         model = self.load_model()
         processed_path = self.process_image()
@@ -116,7 +124,9 @@ class Paint(object):
         test_img = test_img.astype('float32') / 255
 
         y_predict = model.predict(test_img)
-        print("● Prediction: " + str(np.argmax(y_predict[0])))
+        classes = self.class_probabilities(y_predict, 0)
+        print("  ○ Prediction: " + str(np.argmax(y_predict[0])))
+        print("    ■ Confidence: " + classes[np.argmax(y_predict[0])] + "%")
 
     def centre_window(self, window_height=600, window_width=600):
         self.root.resizable(False, False)
