@@ -7,7 +7,7 @@ from tkinter import *
 from tkinter import colorchooser
 
 # Image Processing
-from PIL import Image, ImageGrab
+from PIL import ImageGrab
 import cv2
 
 # Math
