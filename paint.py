@@ -1,12 +1,10 @@
 # Operating System
 import os
-from pyexpat import model
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # GUI
 from tkinter import *
-from tkinter import ttk, colorchooser
-from tkinter.colorchooser import askcolor
+from tkinter import colorchooser
 
 # Image Processing
 from PIL import Image, ImageGrab
@@ -39,22 +37,26 @@ class Paint(object):
         menu_bar = Menu(self.root)
 
         file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="Predict", command=self.screenshot_canvas)
+        file_menu.add_command(label="Predict", command=self.predict_short_cut, accelerator="P")
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.root.destroy)
+        file_menu.add_command(label="Exit", command=self.exit_short_cut, accelerator="Ctrl+Q")
         menu_bar.add_cascade(label="File", menu=file_menu)
 
         colour_menu = Menu(menu_bar, tearoff=0)
         colour_menu.add_command(label="Brush Colour", command=self.change_foreground)
         colour_menu.add_command(label="Background Colour", command=self.change_background)
         colour_menu.add_separator()
-        colour_menu.add_command(label="Clear Canvas", command=self.clear)
+        colour_menu.add_command(label="Clear Canvas", command=self.clear_short_cut, accelerator="C")
         menu_bar.add_cascade(label="Edit", menu=colour_menu)
 
         self.root.config(menu=menu_bar)
 
         self.canvas = Canvas(self.root, bg='white', width=600, height=600)
         self.canvas.grid(row=1, columnspan=5)
+
+        self.root.bind_all("<p>", self.predict_short_cut)
+        self.root.bind_all("<c>", self.clear_short_cut)
+        self.root.bind_all("<Control-q>", self.exit_short_cut)
 
         self.setup()
         self.root.mainloop()
@@ -67,6 +69,15 @@ class Paint(object):
         self.color = self.DEFAULT_COLOR
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
+    
+    def exit_short_cut(self, event):
+        self.root.destroy()
+    
+    def predict_short_cut(self, event):
+        self.screenshot_canvas()
+    
+    def clear_short_cut(self, event):
+        self.clear()
 
     def screenshot_canvas(self):
         time.sleep(0.25)
