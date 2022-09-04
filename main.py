@@ -1,3 +1,6 @@
+# Paint GUI 
+import paint
+
 # Operating System
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -372,12 +375,14 @@ def prediction_query(model, x_test, y_test):
     print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow'))
     print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow'))
 
-    external_mnist = input("● Would you like to use your own external data or the MNIST data? (E/M): ")
+    external_mnist = input("● Would you like to use your own external data, MNIST data, or draw your own data? (E/M/D): ")
     if external_mnist in ['E', 'e']:
         create_directory()
         external_data_query(model)
     elif external_mnist in ['M', 'm']:
         mnist_data_query(model, x_test, y_test)
+    elif external_mnist in ['D', 'd']:
+        paint.main()
     else:
         print(colored('Error: ' + '\'' + str(external_mnist) + '\'' + ' is not in the correct format (E/M), exiting...', color='red', attrs=['bold']))
         exit(1)
