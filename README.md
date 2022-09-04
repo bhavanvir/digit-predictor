@@ -32,7 +32,7 @@ Running the Digit-Predictor application using `python3 main.py` in any terminal 
 
 1. If `E` is selected, the user will be prompted with the option to view the processed version of their input image, or to recieve a command-line prediction along with each image read from the `input` directory.
 2. If `M` is selected, the user will be prompted with the option to view an incorrectly predicted image, or a correctly predicted image. In either case, the user will then be asked to input a digit between 0 and 9 inclusive, and the application will then show an example.
-3. If `D` is selected, the user will be prompted with a paint canvas that can be used to draw a digit, then when they are satisfied with their drawing, they can select `File → Predict` to recieve a prediction.
+3. If `D` is selected, the user will be prompted with a paint canvas that can be used to draw a digit, then when they are satisfied with their drawing, they can select `File → Predict` or use the keyboard short-cut `P`, to recieve a prediction.
 
 Users can also select either `Y` or `N` during application start-up, to view the confusion matrix associated with the `mnist_model.h5` file; the confusion matrix serves as a visual representation of the accuracy of the model.
 
