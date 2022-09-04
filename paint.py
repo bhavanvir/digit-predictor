@@ -31,9 +31,12 @@ class Paint(object):
     def __init__(self):
         self.root = Tk()
         self.root.title("Paint")
+        self.root.resizable(False, False)
+
         self.centre_window()
 
         menu_bar = Menu(self.root)
+
         file_menu = Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="Predict", command=self.screenshot_canvas)
         file_menu.add_separator()
@@ -47,10 +50,11 @@ class Paint(object):
         colour_menu.add_command(label="Clear Canvas", command=self.clear)
         menu_bar.add_cascade(label="Edit", menu=colour_menu)
 
-        self.c = Canvas(self.root, bg='white', width=600, height=600)
-        self.c.grid(row=1, columnspan=5)
-
         self.root.config(menu=menu_bar)
+
+        self.canvas = Canvas(self.root, bg='white', width=600, height=600)
+        self.canvas.grid(row=1, columnspan=5)
+
         self.setup()
         self.root.mainloop()
 
@@ -60,8 +64,8 @@ class Paint(object):
         self.colour_background = 'white'
         self.colour_foreground = 'black'
         self.color = self.DEFAULT_COLOR
-        self.c.bind('<B1-Motion>', self.paint)
-        self.c.bind('<ButtonRelease-1>', self.reset)
+        self.canvas.bind('<B1-Motion>', self.paint)
+        self.canvas.bind('<ButtonRelease-1>', self.reset)
 
     def screenshot_canvas(self):
         time.sleep(0.25)
@@ -119,20 +123,20 @@ class Paint(object):
         self.root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
     def clear(self):
-        self.c.delete("all")
+        self.canvas.delete("all")
     
     def change_foreground(self):
         self.colour_foreground=colorchooser.askcolor(color=self.colour_foreground)[1]
 
     def change_background(self):
         self.colour_background=colorchooser.askcolor(color=self.colour_background)[1]
-        self.c['bg'] = self.colour_background
+        self.canvas['bg'] = self.colour_background
 
     def paint(self, event):
         self.line_width = self.DEFAULT_PEN_SIZE
         paint_color = self.colour_foreground
         if self.old_x and self.old_y:
-            self.c.create_line(
+            self.canvas.create_line(
                 self.old_x, 
                 self.old_y, 
                 event.x, 
