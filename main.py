@@ -5,6 +5,9 @@ import paint
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+# Input Formatting
+from PyInquirer import style_from_dict, Token, prompt
+
 # Image Processing
 import cv2
 
@@ -35,6 +38,21 @@ import time
 
 # String Validation
 import re
+
+global bolded_colour, colour
+bolded_colour = '#FFFF00 bold'
+colour = 'yellow'
+
+global style 
+style = style_from_dict({
+    Token.Separator: bolded_colour,
+    Token.QuestionMark: '',
+    Token.Selected: bolded_colour,
+    Token.Pointer: bolded_colour,
+    Token.Instruction: '',
+    Token.Answer: '',
+    Token.Question: '',
+})
 
 def generate_mnist_image(random_value, x_test, y_test, y_predict, occurences):
     fig, ax = plt.subplots(1)
@@ -283,7 +301,7 @@ def load_model(x_test, y_test):
     print(colored('\nSuccess: loading \'mnist_model.h5\' from disk...', color='green', attrs=['bold']))
 
     loss, accuracy = model.evaluate(x_test, y_test, verbose=2)
-    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * accuracy) + ' and loss {:.2f}%.'.format(loss), color='green', attrs=['bold']))
+    print(colored('Success: restored \'mnist_model.h5\' with accuracy {:5.2f}%'.format(100 * accuracy) + ' and loss {:.2f}%.\n'.format(loss), color='green', attrs=['bold']))
 
     return model
 
@@ -307,13 +325,23 @@ def external_data_query(model):
         print(colored('Error: no files found in \'input\' directory, exiting...', color='red', attrs=['bold']))
         exit(1)
 
-    view_image = input("  ○ Would you like to view the processed input image? (Y/N): ")
-    if view_image in ['Y', 'y']:
+    questions = [
+        {
+            'type': 'confirm',
+            'qmark': '  ○',
+            'name': 'processed',
+            'message': 'Would you like to view the processed input image?',
+            'default': 'invalid'
+        }
+    ]
+    answers = prompt(questions, style=style)
+
+    if answers['processed'] and answers['processed'] != 'invalid':
         view_flag = True
-    elif view_image in ['N', 'n']:
+    elif not answers['processed'] and answers['processed'] != 'invalid':
         view_flag = False
-    else:
-        print(colored('Error: ' + '\'' + str(view_image) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+    elif answers['processed'] == 'invalid':
+        print(colored('Error: ' + '\'' + str(answers['processed']) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
         exit(1)
 
     sum = 0
@@ -327,7 +355,7 @@ def external_data_query(model):
             if boolean_label:
                 sum += 1
         except AttributeError:
-            print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label (0-9), exiting...', color='red', attrs=['bold']))
+            print(colored('Error: ' + '\'' + str(file) + '\'' + ' does not include a numerical label, exiting...', color='red', attrs=['bold']))
             exit(1)
 
         if actual_label == str(np.argmax(y_predict[0])):
@@ -349,54 +377,131 @@ def external_data_query(model):
     print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format((len(incorrect_files) / (len(correct_files + incorrect_files))) * 100, len(incorrect_files), len(correct_files + incorrect_files)))
 
 def mnist_data_query(model, x_test, y_test):
-    incorrect_correct = input("  ○ Would you like to see an incorrectly predicted image or a correctly predicted image? (I/C): ")
-    try:
-        assert incorrect_correct in ['I', 'i', 'C', 'c']
-    except AssertionError:
-        print(colored('Error: ' + '\'' + str(incorrect_correct) + '\'' + ' is not in the correct format (I/C), exiting...', color='red', attrs=['bold']))
-        exit(1)
-
-    number_range = input("    ■ Enter a number of the image you would like to see (0-9): ")
-    try:
-        assert int(number_range) in range(10)
-    except AssertionError:
-        print(colored('Error: ' + '\'' + str(number_range) + '\'' + ' is not within range (0-9), exiting...', color='red', attrs=['bold']))
-        exit(1)
+    predicted_questions = [
+        {
+            'type': 'list',
+            'qmark': '  ○',
+            'name': 'predicted_image',
+            'message': 'Would you like to view a correct or incorrect prediction?',
+            'choices': [
+                {
+                    'name': 'Correct',
+                    'value': 'correct'
+                },
+                {
+                    'name': 'Incorrect',
+                    'value': 'incorrect'
+                }
+            ]
+        }
+    ]
+    predicted_answers = prompt(predicted_questions, style=style)
+    
+    numerical_questions = [
+        {
+            'type': 'list',
+            'qmark': '    ■',
+            'name': 'numerical_image',
+            'message': 'Select the number of the predicted label you would like to view.',
+            'choices': [
+                {
+                    'name': '0',
+                },
+                {
+                    'name': '1',
+                },
+                {
+                    'name': '2',
+                },
+                {
+                    'name': '3',
+                },
+                {
+                    'name': '4',
+                },
+                {
+                    'name': '5',
+                },
+                {
+                    'name': '6',
+                },
+                {
+                    'name': '7',
+                },
+                {
+                    'name': '8',
+                },
+                {
+                    'name': '9'
+                }
+            ]
+        }
+    ]
+    numerical_answers = prompt(numerical_questions, style=style)
 
     y_predict = model.predict(x_test)
     incorrect_predict, correct_predict = find_all(x_test, y_test, y_predict)
-    if incorrect_correct in ['I', 'i']:
-        generate_random_image(x_test, y_test, y_predict, incorrect_predict, number_range)
-    elif incorrect_correct in ['C', 'c']:
-        generate_random_image(x_test, y_test, y_predict, correct_predict, number_range)
+    if predicted_answers['predicted_image'] == 'incorrect':
+        generate_random_image(x_test, y_test, y_predict, incorrect_predict, int(numerical_answers['numerical_image']))
+    elif predicted_answers['predicted_image'] == 'correct':
+        generate_random_image(x_test, y_test, y_predict, correct_predict, int(numerical_answers['numerical_image']))
 
 def prediction_query(model, x_test, y_test):
     print(colored('\n● Note:', color='yellow'))
     print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow'))
     print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow'))
 
-    external_mnist = input("● Would you like to use your own external data, MNIST data, or draw your own data? (E/M/D): ")
-    if external_mnist in ['E', 'e']:
+    questions = [
+        {
+            'type': 'list',
+            'qmark': '●',
+            'name': 'query_type',
+            'message': 'What data type would you like to use?',
+            'choices': [
+                {
+                    'name': 'MNIST',
+                    'value': 'mnist'
+                },
+                {
+                    'name': 'External',
+                    'value': 'external'
+                },
+                {
+                    'name': 'Drawn',
+                    'value': 'drawn'
+                }
+            ]
+        }
+    ]
+    answers = prompt(questions, style=style)
+
+    if answers['query_type'] == 'external':
         create_directory()
         external_data_query(model)
-    elif external_mnist in ['M', 'm']:
+    elif answers['query_type'] == 'mnist':
         mnist_data_query(model, x_test, y_test)
-    elif external_mnist in ['D', 'd']:
+    elif answers['query_type'] == 'drawn':
         paint.main()
-    else:
-        print(colored('Error: ' + '\'' + str(external_mnist) + '\'' + ' is not in the correct format (E/M), exiting...', color='red', attrs=['bold']))
-        exit(1)
 
 def confusion_matrix_query(model, x_test, y_test):
-    confusion_matrix = input("\n● Would you like to see the confusion matrix for the MNIST data? (Y/N): ")
+    questions = [
+        {
+            'type': 'confirm',
+            'qmark': '●',
+            'name': 'confusion_matrix',
+            'message': 'Would you like to view the confusion matrix?',
+            'default': 'invalid'
+        }
+    ]
+    answers = prompt(questions, style=style)
 
-    if confusion_matrix in ['Y', 'y']:
+    if answers['confusion_matrix'] and answers['confusion_matrix'] != 'invalid':
         y_predict = model.predict(x_test)
         generate_confusion_martix(y_test, y_predict)
-    elif confusion_matrix in ['N', 'n']:
+    elif not answers['confusion_matrix'] and answers['confusion_matrix'] != 'invalid':
         return
-    else:
-        print(colored('Error: ' + '\'' + str(confusion_matrix) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
+    elif answers['confusion_matrix'] == 'invalid':
+        print(colored('Error: ' + '\'' + str(answers['confusion_matrix']) + '\'' + ' is not in the correct format (Y/N), exiting...', color='red', attrs=['bold']))
         exit(1)
 
 def create_directory():
