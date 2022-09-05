@@ -39,16 +39,16 @@ class Paint(object):
         menu_bar = Menu(self.root)
 
         file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="Predict", command=self.predict_short_cut, accelerator="P")
+        file_menu.add_command(label="Predict", command=self.predict_shortcut, accelerator="P")
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.exit_short_cut, accelerator="Ctrl+Q")
+        file_menu.add_command(label="Exit", command=self.exit_shortcut, accelerator="Ctrl+Q")
         menu_bar.add_cascade(label="File", menu=file_menu)
 
         colour_menu = Menu(menu_bar, tearoff=0)
-        colour_menu.add_command(label="Brush Colour", command=self.change_foreground)
-        colour_menu.add_command(label="Background Colour", command=self.change_background)
+        colour_menu.add_command(label="Brush Colour", command=self.change_foreground, accelerator="F")
+        colour_menu.add_command(label="Background Colour", command=self.change_background, accelerator="B")
         colour_menu.add_separator()
-        colour_menu.add_command(label="Clear Canvas", command=self.clear_short_cut, accelerator="C")
+        colour_menu.add_command(label="Clear Canvas", command=self.clear_shortcut, accelerator="C")
         menu_bar.add_cascade(label="Edit", menu=colour_menu)
 
         self.root.config(menu=menu_bar)
@@ -56,9 +56,11 @@ class Paint(object):
         self.canvas = Canvas(self.root, bg='white', width=600, height=600)
         self.canvas.grid(row=1, columnspan=5)
 
-        self.root.bind_all("<p>", self.predict_short_cut)
-        self.root.bind_all("<c>", self.clear_short_cut)
-        self.root.bind_all("<Control-q>", self.exit_short_cut)
+        self.root.bind_all("<p>", self.predict_shortcut)
+        self.root.bind_all("<c>", self.clear_shortcut)
+        self.root.bind_all("<Control-q>", self.exit_shortcut)
+        self.root.bind_all("<f>", self.change_foreground_shortcut)
+        self.root.bind_all("<b>", self.change_background_shortcut)
 
         self.setup()
         self.root.mainloop()
@@ -72,13 +74,19 @@ class Paint(object):
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
     
-    def exit_short_cut(self, event):
+    def change_foreground_shortcut(self, event):
+        self.change_foreground()
+
+    def change_background_shortcut(self, event):
+        self.change_background()
+
+    def exit_shortcut(self, event):
         self.root.destroy()
     
-    def predict_short_cut(self, event):
+    def predict_shortcut(self, event):
         self.screenshot_canvas()
     
-    def clear_short_cut(self, event):
+    def clear_shortcut(self, event):
         self.clear()
 
     def screenshot_canvas(self):
@@ -91,6 +99,20 @@ class Paint(object):
         image = ImageGrab.grab().crop((x0, y0, x1, y1))
         image.save(os.getcwd() + '/screenshot/screenshot.png')
         self.predict_drawing()
+
+    def image_composition(self, black_white_image):
+        number_not_black = cv2.countNonZero(black_white_image)
+
+        height = black_white_image.shape[0]
+        width = black_white_image.shape[1]
+
+        number_pixels = height * width
+        number_black = number_pixels - number_not_black  
+
+        if number_black < number_not_black:
+            return True
+        else:
+            return False
     
     def process_image(self):
         file = os.listdir(os.getcwd() + '\screenshot')[0]
@@ -103,7 +125,10 @@ class Paint(object):
         gray_image = cv2.cvtColor(base_image, cv2.COLOR_BGR2GRAY)
         (thresh, black_white_image) = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 
-        inverted_image = cv2.bitwise_not(black_white_image)
+        if self.image_composition(black_white_image):
+            inverted_image = cv2.bitwise_not(black_white_image)
+        elif not self.image_composition(black_white_image, file):
+            inverted_image = black_white_image
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         dialated_image = cv2.dilate(inverted_image, kernel, iterations=10)
@@ -138,8 +163,7 @@ class Paint(object):
 
         y_predict = model.predict(test_img)
         classes = self.class_probabilities(y_predict, 0)
-        print("  ○ Prediction: " + str(np.argmax(y_predict[0])))
-        print("    ■ Confidence: " + classes[np.argmax(y_predict[0])] + "%")
+        print("  ○ Label: {}, Probability: {}%".format(str(np.argmax(y_predict[0])), classes[np.argmax(y_predict[0])]))
 
     def centre_window(self, window_height=600, window_width=600):
         self.root.resizable(False, False)
@@ -165,6 +189,7 @@ class Paint(object):
     def paint(self, event):
         self.line_width = self.DEFAULT_PEN_SIZE
         paint_color = self.colour_foreground
+
         if self.old_x and self.old_y:
             self.canvas.create_line(
                 self.old_x, 
@@ -177,6 +202,7 @@ class Paint(object):
                 smooth=TRUE, 
                 splinesteps=36
             )
+
         self.old_x = event.x
         self.old_y = event.y
 
