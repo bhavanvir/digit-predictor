@@ -26,7 +26,7 @@ import time
 import re
 
 class Paint(object):
-    DEFAULT_PEN_SIZE = 5.0
+    DEFAULT_PEN_SIZE = 10.0
     DEFAULT_COLOR = 'black'
 
     def __init__(self):
@@ -106,7 +106,7 @@ class Paint(object):
         inverted_image = cv2.bitwise_not(black_white_image)
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-        dialated_image = cv2.dilate(inverted_image, kernel, iterations=15)
+        dialated_image = cv2.dilate(inverted_image, kernel, iterations=10)
 
         blurred_image = cv2.GaussianBlur(dialated_image, (7, 7), 0)
 
