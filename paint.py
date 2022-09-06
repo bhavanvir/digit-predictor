@@ -39,16 +39,16 @@ class Paint(object):
         menu_bar = Menu(self.root)
 
         file_menu = Menu(menu_bar, tearoff=0)
-        file_menu.add_command(label="Predict", command=self.predict_shortcut, accelerator="P")
+        file_menu.add_command(label="Predict", command=self.screenshot_canvas, accelerator="P")
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.exit_shortcut, accelerator="Ctrl+Q")
+        file_menu.add_command(label="Exit", command=self.root.destroy, accelerator="Ctrl+Q")
         menu_bar.add_cascade(label="File", menu=file_menu)
 
         colour_menu = Menu(menu_bar, tearoff=0)
         colour_menu.add_command(label="Brush Colour", command=self.change_foreground, accelerator="F")
         colour_menu.add_command(label="Background Colour", command=self.change_background, accelerator="B")
         colour_menu.add_separator()
-        colour_menu.add_command(label="Clear Canvas", command=self.clear_shortcut, accelerator="C")
+        colour_menu.add_command(label="Clear Canvas", command=self.clear, accelerator="C")
         menu_bar.add_cascade(label="Edit", menu=colour_menu)
 
         self.root.config(menu=menu_bar)
@@ -62,17 +62,26 @@ class Paint(object):
         self.root.bind_all("<f>", self.change_foreground_shortcut)
         self.root.bind_all("<b>", self.change_background_shortcut)
 
+        self.canvas.bind("<Enter>", lambda event: self.check_hand_enter())
+        self.canvas.bind("<Leave>", lambda event: self.check_hand_left())
+
         self.setup()
         self.root.mainloop()
 
     def setup(self):
         self.old_x = None
         self.old_y = None
-        self.colour_background = 'white'
-        self.colour_foreground = 'black'
+        self.colour_background = "white"
+        self.colour_foreground = "black"
         self.color = self.DEFAULT_COLOR
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
+
+    def check_hand_enter(self):
+        self.canvas.config(cursor="crosshair")
+
+    def check_hand_left(self):
+        self.canvas.config(cursor="")
     
     def change_foreground_shortcut(self, event):
         self.change_foreground()
