@@ -136,7 +136,7 @@ class Paint(object):
 
         if self.image_composition(black_white_image):
             inverted_image = cv2.bitwise_not(black_white_image)
-        elif not self.image_composition(black_white_image, file):
+        elif not self.image_composition(black_white_image):
             inverted_image = black_white_image
 
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
