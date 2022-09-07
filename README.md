@@ -10,7 +10,7 @@ Several dependencies are required to run Digit-Predictor that are not included i
 
 Using the package manager [pip](https://pip.pypa.io/en/stable/) to install external modules:
 ```bash
-pip install cv2
+pip install opencv-python
 pip install numpy 
 pip install tensorflow
 pip install keras
