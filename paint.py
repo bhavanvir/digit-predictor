@@ -174,7 +174,7 @@ class Paint(object):
         classes = self.class_probabilities(y_predict, 0)
         print("  ○ Label: {}, Probability: {}%".format(str(np.argmax(y_predict[0])), classes[np.argmax(y_predict[0])]))
 
-    def centre_window(self, window_height=600, window_width=600):
+    def centre_window(self, window_height=338, window_width=338):
         self.root.resizable(False, False)
 
         screen_width = self.root.winfo_screenwidth()
