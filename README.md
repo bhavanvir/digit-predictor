@@ -8,15 +8,9 @@ The [MNIST](https://keras.io/api/datasets/mnist/) digits classification dataset 
 
 Several dependencies are required to run Digit-Predictor that are not included in the Python Standard Library. It is imperative that these modules are installed and functional beforehand.
 
-Using the package manager [pip](https://pip.pypa.io/en/stable/) to install external modules:
+Using the package manager [pip](https://pip.pypa.io/en/stable/) to install all external modules:
 ```bash
-pip install opencv-python
-pip install numpy 
-pip install tensorflow
-pip install keras
-pip install matplotlib
-pip install seaborn
-pip install colorama
+pip install -r requirements.txt
 ```
 
 ## Usage
