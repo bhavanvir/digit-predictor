@@ -12,6 +12,7 @@ Using the package manager [pip](https://pip.pypa.io/en/stable/) to install all e
 ```bash
 pip install -r requirements.txt
 ```
+Once the external modules have been installed, the source code for Digit-Predictor can then be obtained using the `git clone` command with the public repository's URL as the target, to make a clone or copy of the repository in a new directory, at another location.
 
 ## Usage
 
