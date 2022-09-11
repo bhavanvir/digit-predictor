@@ -6,13 +6,22 @@ The [MNIST](https://keras.io/api/datasets/mnist/) digits classification dataset 
 
 ## Installation
 
+The source code for Digit-Predictor can then be obtained using the `git clone` command with the public repository's URL as the target, to make a clone or copy of the repository in a new directory, at another location.
+```bash
+git clone https://github.com/bhavanvir/Digit-Predictor
+```
+
+Change your directory to the root of the project.
+```bash
+cd Digit-Predictor
+```
+
 Several dependencies are required to run Digit-Predictor that are not included in the Python Standard Library. It is imperative that these modules are installed and functional beforehand.
 
 Using the package manager [pip](https://pip.pypa.io/en/stable/) to install all external modules:
 ```bash
 pip install -r requirements.txt
 ```
-Once the external modules have been installed, the source code for Digit-Predictor can then be obtained using the `git clone` command with the public repository's URL as the target, to make a clone or copy of the repository in a new directory, at another location.
 
 ## Usage
 
