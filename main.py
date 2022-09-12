@@ -55,22 +55,6 @@ style = style_from_dict({
     Token.Question: '',
 })
 
-def generate_mnist_image(random_value, x_test, y_test, y_predict, occurences):
-    fig, ax = plt.subplots(1)
-
-    ax.imshow(x_test[random_value].reshape(28, 28), cmap='gray')
-    ax.set_title('Image Number ' + str(occurences.index(random_value)) + ' of ' + str(len(occurences)) + ' Total Occurences')
-
-    actual = np.where(y_test[random_value] == 1)
-    legend = 'Predicted label: ' + str(np.argmax(y_predict[random_value])) + '\n' + 'Actual label: ' + str(actual[0][0])
-    ax.text(x=-10, y=8.02, s=legend, bbox={'facecolor': 'white', 'pad': 10})
-
-    ax.text(x=-10, y=5.85, s=class_legend_label(y_predict, random_value), bbox={'facecolor': 'white', 'pad': 10})
-
-    zoom_plot_window()
-
-    plt.show()
-
 def generate_external_image(img, file, y_predict, actual_label):
     fig, ax = plt.subplots(1)
     
@@ -85,11 +69,6 @@ def generate_external_image(img, file, y_predict, actual_label):
     zoom_plot_window()
 
     plt.show()
-
-def generate_random_image(x_test, y_test, y_predict, prediction, number_range):
-    occurence = find_occurences(prediction, int(number_range))
-    random_value = random_predict(occurence)
-    generate_mnist_image(random_value, x_test, y_test, y_predict, occurence)
 
 def generate_confusion_martix(y_predict, y_test):
     confusion_matrix = tf.math.confusion_matrix(labels=np.argmax(y_test, axis=1), predictions=np.argmax(y_predict, axis=1))
@@ -185,11 +164,6 @@ def find_all(x_test, y_test, y_predict):
     
     return incorrect_predict, correct_predict
 
-def random_predict(occurences):
-    random_value = random.choice(occurences)
-
-    return random_value
-
 def test_harness(y_predict, file):
     extension = re.search(r"[\.][a-zA-Z]*$", file)
     removed_extension = file.strip(extension.group(0))
@@ -199,11 +173,6 @@ def test_harness(y_predict, file):
         return test_case.group(0), True
     else:
         return test_case.group(0), False
-
-def find_occurences(prediction, wanted):
-    occurences = [k for k, v in prediction.items() if v == wanted]
-    
-    return occurences
 
 def external_data(file, input_directory):
     base_path = str(input_directory + '\\' + file)
@@ -377,76 +346,6 @@ def external_data_query(model):
     print('  ○ Incorrectly predicted files: ' + str(incorrect_files)[1:-1])
     print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format((len(incorrect_files) / (len(correct_files + incorrect_files))) * 100, len(incorrect_files), len(correct_files + incorrect_files)))
 
-def mnist_data_query(model, x_test, y_test):
-    predicted_questions = [
-        {
-            'type': 'list',
-            'qmark': '  ○',
-            'name': 'predicted_image',
-            'message': 'Would you like to view a correct or incorrect prediction?',
-            'choices': [
-                {
-                    'name': 'Correct',
-                    'value': 'correct'
-                },
-                {
-                    'name': 'Incorrect',
-                    'value': 'incorrect'
-                }
-            ]
-        }
-    ]
-    predicted_answers = prompt(predicted_questions, style=style)
-    
-    numerical_questions = [
-        {
-            'type': 'list',
-            'qmark': '    ■',
-            'name': 'numerical_image',
-            'message': 'Select the number of the predicted label you would like to view.',
-            'choices': [
-                {
-                    'name': '0',
-                },
-                {
-                    'name': '1',
-                },
-                {
-                    'name': '2',
-                },
-                {
-                    'name': '3',
-                },
-                {
-                    'name': '4',
-                },
-                {
-                    'name': '5',
-                },
-                {
-                    'name': '6',
-                },
-                {
-                    'name': '7',
-                },
-                {
-                    'name': '8',
-                },
-                {
-                    'name': '9'
-                }
-            ]
-        }
-    ]
-    numerical_answers = prompt(numerical_questions, style=style)
-
-    y_predict = model.predict(x_test)
-    incorrect_predict, correct_predict = find_all(x_test, y_test, y_predict)
-    if predicted_answers['predicted_image'] == 'incorrect':
-        generate_random_image(x_test, y_test, y_predict, incorrect_predict, int(numerical_answers['numerical_image']))
-    elif predicted_answers['predicted_image'] == 'correct':
-        generate_random_image(x_test, y_test, y_predict, correct_predict, int(numerical_answers['numerical_image']))
-
 def prediction_query(model, x_test, y_test):
     print(colored('\n● Note:', color='yellow'))
     print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow'))
@@ -457,18 +356,14 @@ def prediction_query(model, x_test, y_test):
             'type': 'list',
             'qmark': '●',
             'name': 'query_type',
-            'message': 'What data type would you like to use?',
+            'message': 'How would you like to query the model?',
             'choices': [
                 {
-                    'name': 'MNIST',
-                    'value': 'mnist'
-                },
-                {
-                    'name': 'External',
+                    'name': 'Upload files',
                     'value': 'external'
                 },
                 {
-                    'name': 'Drawn',
+                    'name': 'Paint digits',
                     'value': 'drawn'
                 }
             ]
@@ -479,8 +374,6 @@ def prediction_query(model, x_test, y_test):
     if answers['query_type'] == 'external':
         create_directory()
         external_data_query(model)
-    elif answers['query_type'] == 'mnist':
-        mnist_data_query(model, x_test, y_test)
     elif answers['query_type'] == 'drawn':
         paint.main()
 
