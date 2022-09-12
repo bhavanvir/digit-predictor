@@ -34,9 +34,8 @@ model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_d
 
 Running the Digit-Predictor application using `python3 main.py` in any terminal will prompt the user with three branching options: `MNIST` to use the MNIST data, `External` to use your own external data, or `Drawn` to draw your own data. 
 
-1. If `MNIST` is selected, the user will be prompted with the option to view an incorrectly predicted image, or a correctly predicted image. In either case, the user will then be asked to select a digit between 0 and 9 inclusive, and the application will then show an example.
-2. If `External` is selected, the user will be prompted with a `Y` or `N` option to view their processed input image, or to recieve a command-line prediction for each file located in the `input` directory. In either case, a prediction summary will be output to the terminal.
-3. If `Drawn` is selected, the user will be prompted with a paint canvas that can be used to draw a digit, then when they are satisfied with their drawing, they can select `File → Predict` or use the keyboard short-cut `P`, to recieve a prediction.
+1. If `Upload files` is selected, the user will be prompted with a `Y` or `N` option to view their processed input image, or to recieve a command-line prediction for each file located in the `input` directory. In either case, a prediction summary will be output to the terminal.
+2. If `Paint digits` is selected, the user will be prompted with a paint canvas that can be used to draw a digit, then when they are satisfied with their drawing, they can select `File → Predict` or use the keyboard short-cut `P`, to recieve a prediction.
 
 Users can also select either `Y` or `N` during application start-up, to view the confusion matrix associated with the `mnist_model.h5` file; the confusion matrix serves as a visual representation of the accuracy of the model.
 
