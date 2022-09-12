@@ -346,7 +346,7 @@ def external_data_query(model):
     print('  ○ Incorrectly predicted files: ' + str(incorrect_files)[1:-1])
     print('    ■ Percentage incorrect: {:.2f}% ({}/{})'.format((len(incorrect_files) / (len(correct_files + incorrect_files))) * 100, len(incorrect_files), len(correct_files + incorrect_files)))
 
-def prediction_query(model, x_test, y_test):
+def prediction_query(model):
     print(colored('\n● Note:', color='yellow'))
     print(colored('  ○ External data must be placed in the \'input\' folder.', color='yellow'))
     print(colored('  ○ For testing purposes, have the input file include the number wanting to be predicted.\n', color='yellow'))
@@ -436,7 +436,7 @@ def main():
     confusion_matrix_query(model, x_test, y_test)
 
     try:
-        prediction_query(model, x_test, y_test)
+        prediction_query(model)
     except UnboundLocalError:
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
 
