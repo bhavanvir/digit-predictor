@@ -8,3 +8,4 @@ PyInquirer==1.0.3
 seaborn==0.11.2
 tensorflow==2.9.1
 termcolor==1.1.0
+tkcap==0.0.2
