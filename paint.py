@@ -10,6 +10,7 @@ from tkinter import colorchooser
 # Image Processing
 from PIL import ImageGrab
 import cv2
+import tkcap
 
 # Math
 import numpy as np
@@ -96,13 +97,18 @@ class Paint(object):
 
     def screenshot_canvas(self):
         time.sleep(0.25)
-        x0 = self.root.winfo_rootx()
-        y0 = self.root.winfo_rooty()
-        x1 = x0 + self.root.winfo_width()
-        y1 = y0 + self.root.winfo_height()
+  
+        cap = tkcap.CAP(self.root)
+        region = cap.get_region()
+        x, y, w, h = region[0], region[1], region[2], region[3]
+        
+        y += 52
+        w += x
+        h += (y - 29)
 
-        image = ImageGrab.grab().crop((x0, y0, x1, y1))
+        image = ImageGrab.grab().crop((x, y, w, h))
         image.save(os.getcwd() + '/screenshot/screenshot.png')
+
         self.predict_drawing()
 
     def image_composition(self, black_white_image):
@@ -120,8 +126,8 @@ class Paint(object):
             return False
 
     def draw_rectangle(self, gray_image, base_image, label):
-        th, threshed = cv2.threshold(gray_image, 100, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
-        contours = cv2.findContours(cv2.morphologyEx(threshed, cv2.MORPH_OPEN, np.ones((2,2))), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        value, thresholded = cv2.threshold(gray_image, 100, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+        contours = cv2.findContours(cv2.morphologyEx(thresholded, cv2.MORPH_OPEN, np.ones((2,2))), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
         new_height, new_width = base_image.shape[:2]
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
@@ -153,7 +159,7 @@ class Paint(object):
 
         cv2.imwrite(processed_path, blurred_image)
 
-        return processed_path, base_image, gray_image
+        return base_image, gray_image
 
     def load_model(self):
         model = tf.keras.models.load_model("mnist_model.h5")
@@ -168,19 +174,29 @@ class Paint(object):
 
         return classes
 
-    def predict_drawing(self):
-        model = self.load_model()
-        processed_path, base_image, gray_image = self.process_image()
+    def external_data(self, file):
+        processed_path = str(os.getcwd() + '\processed_screenshot\\' + file)
 
         img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
         img = tf.keras.preprocessing.image.img_to_array(img)
         test_img = img.reshape(1, 28, 28, 1)
         test_img = test_img.astype('float32') / 255
 
-        y_predict = model.predict(test_img)
-        classes = self.class_probabilities(y_predict, 0)
-        label =  str(np.argmax(y_predict[0])) + ": " + str(classes[np.argmax(y_predict[0])]) + "%"
-        self.draw_rectangle(gray_image, base_image, label)
+        return test_img
+
+    def predict_drawing(self):
+        model = self.load_model()
+        base_image, gray_image = self.process_image()
+
+        current_directory = os.listdir(os.getcwd() + '/processed_screenshot')
+        for file in current_directory:
+            test_img = self.external_data(file)
+
+            y_predict = model.predict(test_img)
+            classes = self.class_probabilities(y_predict, 0)
+            label =  str(np.argmax(y_predict[0])) + ": " + str(classes[np.argmax(y_predict[0])]) + "%"
+            
+            self.draw_rectangle(gray_image, base_image, label)
 
     def centre_window(self, window_height=400, window_width=400):
         self.root.resizable(False, False)
