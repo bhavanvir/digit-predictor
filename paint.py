@@ -1,4 +1,5 @@
 # Operating System
+from email.mime import base
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -46,7 +47,6 @@ class Paint(object):
 
         colour_menu = Menu(menu_bar, tearoff=0)
         colour_menu.add_command(label="Brush Colour", command=self.change_foreground, accelerator="F")
-        colour_menu.add_command(label="Background Colour", command=self.change_background, accelerator="B")
         colour_menu.add_separator()
         colour_menu.add_command(label="Clear Canvas", command=self.clear, accelerator="C")
         menu_bar.add_cascade(label="Edit", menu=colour_menu)
@@ -60,7 +60,6 @@ class Paint(object):
         self.root.bind_all("<c>", self.clear_shortcut)
         self.root.bind_all("<Control-q>", self.exit_shortcut)
         self.root.bind_all("<f>", self.change_foreground_shortcut)
-        self.root.bind_all("<b>", self.change_background_shortcut)
 
         self.canvas.bind("<Enter>", lambda event: self.check_hand_enter())
         self.canvas.bind("<Leave>", lambda event: self.check_hand_left())
@@ -85,9 +84,6 @@ class Paint(object):
     
     def change_foreground_shortcut(self, event):
         self.change_foreground()
-
-    def change_background_shortcut(self, event):
-        self.change_background()
 
     def exit_shortcut(self, event):
         self.root.destroy()
@@ -122,6 +118,17 @@ class Paint(object):
             return True
         else:
             return False
+
+    def draw_rectangle(self, gray_image, base_image, label):
+        th, threshed = cv2.threshold(gray_image, 100, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+        contours = cv2.findContours(cv2.morphologyEx(threshed, cv2.MORPH_OPEN, np.ones((2,2))), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        new_height, new_width = base_image.shape[:2]
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            if h >= 0.3 * new_width:
+                cv2.rectangle(base_image, (x, y), (x + w, y + h), (0, 0, 225), 3)
+                cv2.putText(base_image, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 225), 2)
+        cv2.imshow("Prediction", base_image)
     
     def process_image(self):
         file = os.listdir(os.getcwd() + '\screenshot')[0]
@@ -146,7 +153,7 @@ class Paint(object):
 
         cv2.imwrite(processed_path, blurred_image)
 
-        return processed_path
+        return processed_path, base_image, gray_image
 
     def load_model(self):
         model = tf.keras.models.load_model("mnist_model.h5")
@@ -163,7 +170,7 @@ class Paint(object):
 
     def predict_drawing(self):
         model = self.load_model()
-        processed_path = self.process_image()
+        processed_path, base_image, gray_image = self.process_image()
 
         img = tf.keras.preprocessing.image.load_img(path=processed_path, color_mode='grayscale', target_size=(28, 28, 1))
         img = tf.keras.preprocessing.image.img_to_array(img)
@@ -172,9 +179,10 @@ class Paint(object):
 
         y_predict = model.predict(test_img)
         classes = self.class_probabilities(y_predict, 0)
-        print("  ○ Label: {}, Probability: {}%".format(str(np.argmax(y_predict[0])), classes[np.argmax(y_predict[0])]))
+        label =  str(np.argmax(y_predict[0])) + ": " + str(classes[np.argmax(y_predict[0])]) + "%"
+        self.draw_rectangle(gray_image, base_image, label)
 
-    def centre_window(self, window_height=338, window_width=338):
+    def centre_window(self, window_height=400, window_width=400):
         self.root.resizable(False, False)
 
         screen_width = self.root.winfo_screenwidth()
@@ -190,10 +198,6 @@ class Paint(object):
     
     def change_foreground(self):
         self.colour_foreground=colorchooser.askcolor(color=self.colour_foreground)[1]
-
-    def change_background(self):
-        self.colour_background=colorchooser.askcolor(color=self.colour_background)[1]
-        self.canvas['bg'] = self.colour_background
 
     def paint(self, event):
         self.line_width = self.DEFAULT_PEN_SIZE
