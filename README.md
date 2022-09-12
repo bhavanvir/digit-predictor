@@ -32,7 +32,7 @@ If the `mnist_model.h5` file is not present in the root directory, the Digit-Pre
 model.fit(datagen.flow(x_train, y_train, batch_size=64), epochs=50, validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0] // 64, callbacks=[early_stopping_monitor])
 ```
 
-Running the Digit-Predictor application using `python3 main.py` in any terminal will prompt the user with three branching options: `MNIST` to use the MNIST data, `External` to use your own external data, or `Drawn` to draw your own data. 
+Running the Digit-Predictor application using `python3 main.py` in any terminal will prompt the user with two branching options: `MNIST` to use the MNIST data, `External` to use your own external data, or `Drawn` to draw your own data. 
 
 1. If `Upload files` is selected, the user will be prompted with a `Y` or `N` option to view their processed input image, or to recieve a command-line prediction for each file located in the `input` directory. In either case, a prediction summary will be output to the terminal.
 2. If `Paint digits` is selected, the user will be prompted with a paint canvas that can be used to draw a digit, then when they are satisfied with their drawing, they can select `File → Predict` or use the keyboard short-cut `P`, to recieve a prediction.
