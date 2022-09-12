@@ -1,4 +1,5 @@
 # Paint GUI 
+from locale import currency
 import paint
 
 # Operating System
@@ -521,6 +522,15 @@ def delete_directory():
     except FileNotFoundError:
         pass
 
+def delete_pycache():
+    try:
+        current_directory = os.listdir(os.getcwd() + '/__pycache__')
+        for file in current_directory:
+            os.remove(os.getcwd() + '/__pycache__/' + file)
+        os.rmdir(os.getcwd() + '/__pycache__')
+    except FileNotFoundError:
+        pass
+
 def main():
     x_train, y_train, x_test, y_test = mnist_data()
 
@@ -538,6 +548,7 @@ def main():
         print(colored("Error: model must be trained before use, exiting...", color='red', attrs=['bold']))
 
     delete_directory()
+    delete_pycache()
         
 if __name__ == "__main__":
     main()
