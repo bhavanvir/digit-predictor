@@ -1,6 +1,7 @@
 # Operating System
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import ctypes
 
 # GUI
 from tkinter import *
@@ -11,6 +12,7 @@ from PIL import ImageGrab
 import cv2
 
 # Math
+import math
 import numpy as np
 
 # Machine Learning
@@ -18,6 +20,11 @@ import logging
 import tensorflow as tf
 logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
+
+# Output Formatting
+import colorama
+colorama.init()
+from termcolor import colored
 
 # Time Delay
 import time
@@ -31,6 +38,7 @@ class Paint(object):
 
     def __init__(self):
         self.root = Tk()
+        
         self.root.title("Paint")
         self.root.resizable(False, False)
 
@@ -255,12 +263,24 @@ def rename_file(file):
 
     return new_name
 
+def display_dpi():
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    root = Tk()
+    dpi = ctypes.windll.user32.GetDpiForWindow(root.winfo_id())
+    root.destroy()
+
+    return dpi
+
 def main():
-    create_directory('screenshot')
-    create_directory('processed_screenshot')
-    Paint()
-    delete_directory('screenshot')
-    delete_directory('processed_screenshot')
+    if display_dpi() / 96 == 1:
+        create_directory('screenshot')
+        create_directory('processed_screenshot')
+        Paint()
+        delete_directory('screenshot')
+        delete_directory('processed_screenshot')
+    else:
+        print(colored("Error: current display DPI of {}% is not supported, please change to 100%.".format(math.ceil(display_dpi() / 96 * 100)), 'red'))
+        exit(1)
 
 if __name__ == '__main__':
     main()
