@@ -131,7 +131,7 @@ class Paint(object):
         self.clear()
 
     def screenshot_canvas(self):
-        time.sleep(0.25)
+        time.sleep(0.5)
   
         x0 = self.root.winfo_rootx()
         y0 = self.root.winfo_rooty()
